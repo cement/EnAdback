@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>SafeindexBack</title>
+</head>
+<body>
+Hello World
+<div id="msg"></div>
+<input type="text" id="text">
+<input type="submit" value="send" onclick="send()">
+</body>
+</html>
+<script>
+    var msg = document.getElementById("msg");
+    var wsServer = 'ws://localhost:8082/websocket?vmcNo=123456'+new Date();
+    var websocket = new WebSocket(wsServer);
+    //监听连接打开
+    websocket.onopen = function (evt) {
+        console.log("连接建立!");
+        msg.innerHTML = "连接建立!";
+    };
+
+    //监听服务器数据推送
+    websocket.onmessage = function (evt) {
+        msg.innerHTML += "<br>收到消息:" + evt.data;
+        console.log("连接建立!");
+    };
+
+    //监听连接关闭
+    websocket.onclose = function (evt) {
+        msg.innerHTML = "连接关闭!";
+        console.log("连接关闭!");
+    };
+
+    function send() {
+        var text = document.getElementById("text").value
+        websocket.send(text);
+    }
+</script>
