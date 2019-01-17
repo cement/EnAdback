@@ -1,5 +1,7 @@
 package com.en.adback.controller.adreplace;
 
+import com.en.adback.entity.adreplace.BusinessEnum;
+import com.en.adback.entity.adreplace.ResponseModel;
 import com.en.adback.serviceimp.adreplace.AdreplaceServiceImpl;
 import io.swagger.annotations.Api;
 import lombok.extern.slf4j.Slf4j;
@@ -28,17 +30,18 @@ public class AdvertReplace {
 
 
     @RequestMapping(value = "/dispatch",method = {RequestMethod.GET,RequestMethod.POST})
-    public ResponseEntity dispatch(String targetUrl,List<String> fileList){
+    public ResponseEntity<List<ResponseModel>> dispatch(String targetUrl,@RequestParam("fileList") List<String> fileList){
 
-        List<String> result = fileList.stream().map(fileName -> adreplaceService.dispatch(targetUrl, fileName)).collect(Collectors.toList());
+        List<ResponseModel> result = fileList.stream().map(fileName -> adreplaceService.dispatch(targetUrl, fileName)).collect(Collectors.toList());
 
         return ResponseEntity.ok(result);
     }
 
     @RequestMapping(value = "/callback",method = {RequestMethod.GET,RequestMethod.POST})
-    public ResponseEntity dispatchCallback(String jsonMessage){
+    public ResponseEntity dispatchCallback(@RequestParam("report") String jsonMessage){
 
-        log.info("收到下载结果汇报：",jsonMessage);
+        log.info("收到下载结果汇报：{}",jsonMessage);
+
         return ResponseEntity.ok(jsonMessage);
     }
 
@@ -49,8 +52,8 @@ public class AdvertReplace {
     }
 
     @RequestMapping(value = "/upload", method = {RequestMethod.GET, RequestMethod.POST})
-    public String upLoad(String targetUrl, @RequestParam("fileName") String fileName) throws IOException {
-        String result = adreplaceService.upLoad(targetUrl, fileName);
-        return result;
+    public ResponseEntity<ResponseModel> upLoad(String targetUrl, @RequestParam("fileName") String fileName) throws IOException {
+        ResponseModel model = adreplaceService.upLoad(targetUrl, fileName);
+        return ResponseEntity.ok(model);
     }
 }
