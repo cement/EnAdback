@@ -3,13 +3,14 @@ package com.en.adback.controller.websocket;
 
 import com.en.adback.websocket.WsSessionManager;
 import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 
-@Api(value="广告替换、下架、下发",tags={"广告替换、下架、下发webapi接口"})
+@Api(value="广告替换、下架、下发控制",tags={"广告替换、下架、下发控制webapi接口"})
 @RestController
 @RequestMapping(value = "/api/websocket", method = {RequestMethod.GET, RequestMethod.POST}, produces = "application/json;charset=UTF-8")
 public class WebsocketCtrl {
@@ -17,11 +18,13 @@ public class WebsocketCtrl {
 
 
 
+    @ApiOperation( value = "根据设备编号控制",notes = "根据设备编号控制api接口")
     @RequestMapping(value = "/dispatch ", method = {RequestMethod.GET, RequestMethod.POST})
     public void sendAction(List<String> devideId, String action){
         devideId.forEach(id->WsSessionManager.sendActionByDeviceId(id,action));
 
     }
+    @ApiOperation( value = "全部设备控制",notes = "全部设备控制api接口")
     @RequestMapping(value = "/broadcast", method = {RequestMethod.GET, RequestMethod.POST})
     public void broadcastAction(String action){
         WsSessionManager.broadcastAction(action);
