@@ -4,6 +4,7 @@ import com.en.adback.entity.adreplace.BusinessEnum;
 import com.en.adback.entity.adreplace.ResponseModel;
 import com.en.adback.serviceimp.adreplace.AdreplaceServiceImpl;
 import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -29,15 +30,27 @@ public class AdvertReplace {
 
 
 
-    @RequestMapping(value = "/dispatch",method = {RequestMethod.GET,RequestMethod.POST})
+    @ApiOperation( value = "广告下载分发",notes = "广告下载分发api接口")
+    @RequestMapping(value = "/dispatch",method = {RequestMethod.POST})
     public ResponseEntity<List<ResponseModel>> dispatch(String targetUrl,@RequestParam("fileList") List<String> fileList){
 
-        List<ResponseModel> result = fileList.stream().map(fileName -> adreplaceService.dispatch(targetUrl, fileName)).collect(Collectors.toList());
+        List<ResponseModel> result = fileList.parallelStream().map(fileName -> adreplaceService.dispatch(targetUrl, fileName)).collect(Collectors.toList());
 
         return ResponseEntity.ok(result);
     }
 
-    @RequestMapping(value = "/callback",method = {RequestMethod.GET,RequestMethod.POST})
+
+    @ApiOperation( value = "广告上传分发",notes = "广告上传分发api接口")
+    @RequestMapping(value = "/upload", method = {RequestMethod.GET, RequestMethod.POST})
+    public ResponseEntity<List<ResponseModel>> upLoad(String targetUrl, @RequestParam("fileList") List<String> fileList) throws IOException {
+        List<ResponseModel> result = fileList.parallelStream().map(fileName -> adreplaceService.upLoad(targetUrl, fileName)).collect(Collectors.toList());
+//        ResponseModel model = adreplaceService.upLoad(targetUrl, fileName);
+        return ResponseEntity.ok(result);
+    }
+
+
+    @ApiOperation( value = "广告分发结果回调",notes = "广告分发结果回调api接口",hidden = true)
+    @RequestMapping(value = "/callback",method = {RequestMethod.POST})
     public ResponseEntity dispatchCallback(@RequestParam("report") String jsonMessage){
 
         log.info("收到下载结果汇报：{}",jsonMessage);
@@ -46,14 +59,11 @@ public class AdvertReplace {
     }
 
 
+    @ApiOperation( value = "广告下载接口",notes = "广告下载接口api接口",hidden = true)
     @RequestMapping(value = "/download", method = {RequestMethod.GET, RequestMethod.POST})
     public void downLoad(@RequestParam("fileName") String fileName, HttpServletResponse response) throws IOException {
         adreplaceService.downLoad(fileName,response);
     }
 
-    @RequestMapping(value = "/upload", method = {RequestMethod.GET, RequestMethod.POST})
-    public ResponseEntity<ResponseModel> upLoad(String targetUrl, @RequestParam("fileName") String fileName) throws IOException {
-        ResponseModel model = adreplaceService.upLoad(targetUrl, fileName);
-        return ResponseEntity.ok(model);
-    }
+
 }
