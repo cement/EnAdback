@@ -12,13 +12,11 @@ import com.en.adback.mapper.advertmgr.IDevicePolicyMapper;
 import com.en.adback.mapper.sys.DefaultAdvertMapper;
 import com.en.adback.mapper.sys.FileHostMapper;
 import com.en.adback.service.advertmgr.IDevicePolicyService;
-import com.sun.org.apache.xerces.internal.xs.datatypes.ObjectList;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.text.Collator;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;

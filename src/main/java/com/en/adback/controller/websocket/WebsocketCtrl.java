@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Arrays;
 import java.util.List;
 
 @Api(value="广告替换、下架、下发控制",tags={"广告替换、下架、下发控制webapi接口"})
@@ -20,10 +21,12 @@ public class WebsocketCtrl {
 
     @ApiOperation( value = "根据设备编号控制",notes = "根据设备编号控制api接口")
     @RequestMapping(value = "/dispatch ", method = {RequestMethod.GET, RequestMethod.POST})
-    public void sendAction(List<String> devideId, String action){
-        devideId.forEach(id->WsSessionManager.sendActionByDeviceId(id,action));
+    public void sendAction(String action,String... devideIds ){
+        Arrays.stream(devideIds).forEach(id->WsSessionManager.sendActionByDeviceId(id,action));
 
     }
+
+
     @ApiOperation( value = "全部设备控制",notes = "全部设备控制api接口")
     @RequestMapping(value = "/broadcast", method = {RequestMethod.GET, RequestMethod.POST})
     public void broadcastAction(String action){

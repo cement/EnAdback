@@ -11,6 +11,32 @@ import org.springframework.stereotype.Component;
 @Data
 @Component
 public class ResponseModel {
+
+
+    public int code;
+    public String name;
+    public String message;
+    public String detail;
+    public Object data;
+
+
+    public ResponseModel(int code, String message, Object data) {
+        this.code = code;
+        this.message = message;
+        this.data = data;
+    }
+
+    public ResponseModel(int code, String message) {
+        this.code = code;
+        this.message = message;
+    }
+
+    public ResponseModel(int code) {
+        this.code = code;
+    }
+    public ResponseModel() {
+    }
+
     public int getCode() {
         return code;
     }
@@ -38,29 +64,30 @@ public class ResponseModel {
         return this;
     }
 
-    public int code;
-    public String name;
-    public String message;
-    public Object data;
 
-    public ResponseModel(int code, String message, Object data) {
-        this.code = code;
-        this.message = message;
-        this.data = data;
+
+    public String getDetail() {
+        return detail;
     }
 
-    public ResponseModel(int code, String message) {
-        this.code = code;
-        this.message = message;
+    public ResponseModel setDetail(String detail) {
+        this.detail = detail;
+        return this;
+    }
+    public String getName() {
+        return name;
     }
 
-    public ResponseModel() {}
-
-    public ResponseModel(ResponseEnum  responseEnum) {
-        this.code = responseEnum.code ;
-        this.name = responseEnum.name();
-        this.message = responseEnum.message ;
+    public ResponseModel setName(String name) {
+        this.name = name;
+        return this;
     }
 
+
+    public static ResponseModel warp(BusinessEnum adEnum){
+        ResponseModel model = new ResponseModel(adEnum.code,adEnum.cname);
+        model.setName(adEnum.name()).setDetail(adEnum.detail);
+       return model;
+    }
 
 }

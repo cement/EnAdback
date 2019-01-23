@@ -1,10 +1,16 @@
 package com.en.adback.serviceimp.adreplace;
 
+import com.alibaba.fastjson.JSON;
+import com.en.adback.controller.adreplace.AdvertReplaceCtrl;
+import com.en.adback.entity.adreplace.BusinessEnum;
+import com.en.adback.entity.adreplace.ResponseModel;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -18,6 +24,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+/**
+ * @author ysh
+ * @created 20190122
+ * @desc 文件上传下发的实现
+ */
+@Slf4j
 @Service
 public class AdreplaceServiceImpl {
 
@@ -27,9 +39,11 @@ public class AdreplaceServiceImpl {
 
     @Autowired
     private RestTemplate restTemplate;
+    @Autowired
+    private AdvertReplaceCtrl advertReplaceCtrl;
 
+    /*提供从本服务器下载功能*/
     public void downLoad(String fileName, HttpServletResponse response) throws IOException {
-
         Path path = Paths.get(advertDir, fileName);
         response.setContentType("application/octet-stream");
         response.setHeader("Content-Disposition", "attachment; filename=" + new String(fileName.getBytes("utf-8"), "iso-8859-1"));
@@ -37,21 +51,57 @@ public class AdreplaceServiceImpl {
 
     }
 
-    public String upLoad(String targetUrl, String fileName) {
+    /*从本服务器上传到市州服务器*/
+    public ResponseModel upLoad(String targetUrl, String fileName,Boolean isAsync) {
 
         Path filePath = Paths.get(advertDir, fileName);
+        if (Files.notExists(filePath)){
+            ResponseModel model = ResponseModel.warp(BusinessEnum.UNEXIST).setData(fileName);
+            this.asyncCallback(JSON.toJSONString(model));
+            return model;
+
+        }
         FileSystemResource resource = new FileSystemResource(filePath);
         MultiValueMap<String, Object> param = new LinkedMultiValueMap<>();
         param.add("file", resource);
         param.add("fileName", fileName);
-        String result = restTemplate.postForObject(targetUrl, param, String.class);
-        return result;
+        param.add("isAsync", isAsync);
+        ResponseModel model = restTemplate.postForObject(targetUrl, param, ResponseModel.class);
+
+        return model;
     }
 
-    public String dispatch(String targetUrl,String fileName){
-        MultiValueMap<String, Object> param = new LinkedMultiValueMap<>();
-        param.add("fileName", fileName);
-        String result = restTemplate.postForObject(targetUrl, param, String.class);
-        return result;
+    @Async
+    public void upLoadAsync(String targetUrl, String fileName,Boolean isAsync) {
+        upLoad(targetUrl,fileName,isAsync);
+    }
+
+    /*从本服务器下发文件名，市州服务器自主从本服务器下载*/
+    public ResponseModel dispatch(String targetUrl,String fileName,Boolean isAsync){
+        Path filePath = Paths.get(advertDir, fileName);
+        if (Files.notExists(filePath)){
+            ResponseModel model = ResponseModel.warp(BusinessEnum.UNEXIST).setData(fileName);
+            this.asyncCallback(JSON.toJSONString(model));
+            return model;
+        }else{
+            MultiValueMap<String, Object> param = new LinkedMultiValueMap<>();
+            param.add("fileName", fileName);
+            param.add("isAsync", isAsync);
+            ResponseModel model = restTemplate.postForObject(targetUrl, param, ResponseModel.class);
+            return model;
+        }
+    }
+    @Async
+    public void dispatchAsync(String targetUrl,String fileName,Boolean isAsync){
+        dispatch(targetUrl,fileName,isAsync);
+    }
+
+
+
+
+    /*市州服务器上传或下载结果报告*/
+    public void asyncCallback(String callbackJson){
+        //TODO
+        log.info("callback 收到的信息：{}",callbackJson);
     }
 }
