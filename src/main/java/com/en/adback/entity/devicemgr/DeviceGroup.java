@@ -1,12 +1,13 @@
 package com.en.adback.entity.devicemgr;
 
+import com.en.adback.entity.UserAction;
 import lombok.Data;
 
 /**设备分组主表
  * Created by Administrator on 2018/12/3.
  */
 @Data
-public class DeviceGroup {
+public class DeviceGroup extends UserAction {
 
     private String devGroupId;   	//设备分组id
     private String devGroupName;  	//设备分组名称

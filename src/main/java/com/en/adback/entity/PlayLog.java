@@ -17,4 +17,5 @@ public class PlayLog {
     private String screenPosition; // 屏幕位置
     private String formerAdvertising; // 前广告
     private String afterTheAdvertising; // 后广告
+    private String screenName;
 }

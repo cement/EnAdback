@@ -26,7 +26,7 @@ public interface DeviceMgrMapper {
 
      // 保存设备分组
     @Insert("upsert into ad.t_deviceGroup(devGroupId,devGroupName,addUser,deviceIds,addTime) " +
-            " values('${devGroupId}','${devGroupName}','${addUser}','${deviceIds}',CONVERT_TZ(CURRENT_DATE(), 'UTC', 'Asia/Shanghai'))")
+            " values('${devGroupId}','${devGroupName}','${loginUserId}','${deviceIds}',CONVERT_TZ(CURRENT_DATE(), 'UTC', 'Asia/Shanghai'))")
      public int saveDeviceGroup(DeviceGroup deviceGroup);
 
     // 删除设备分组

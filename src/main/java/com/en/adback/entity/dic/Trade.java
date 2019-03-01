@@ -13,6 +13,7 @@ public class Trade extends UserAction{
     private String tradeId; //行业id
     private String tradeName; //行业名称
     private String memo  ; // 备注
+    private String pinyin; //拼音
 
     public Trade() {
     }

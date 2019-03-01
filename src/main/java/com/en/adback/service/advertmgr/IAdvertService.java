@@ -56,4 +56,12 @@ public interface IAdvertService {
 
 
     public List<AdvertStateHis> getStateHisByAdvertId(Map<String, Object> map);
+
+    List<Advert> getMakeExcelAdvertCheck(Map<String, Object> map);
+
+    int deleteAdvertMedia(Map<String, Object> map);
+
+    int deleteAdvertFiles(Map<String, Object> map);
+
+    int getAdvertCount(Map<String, Object> map);
 }

@@ -21,6 +21,9 @@ public class User extends UserAction {
     private String groupRoleName;//所属分组名称
     private String roleName;//角色名称
     private boolean ifGroupManager;//是否组管理员
+    private String GroupManager;//是否组管理员 //导出表格时用
+    private boolean appUser ;//是否是微信公众号用户
+    private String wxOpenId ; // 公众号openid
 
     public boolean isIfGroupManager() {
         return ifGroupManager;

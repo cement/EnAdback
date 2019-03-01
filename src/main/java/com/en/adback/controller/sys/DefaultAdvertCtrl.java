@@ -19,6 +19,7 @@ import java.util.Map;
  */
 @Api(value="行业管理",tags={"行业管理webapi 接口"})
 @RestController
+@CrossOrigin
 @RequestMapping(value = "/api/defaultAdvert", method = {RequestMethod.GET, RequestMethod.POST}, produces = "application/json;charset=UTF-8")
 public class DefaultAdvertCtrl {
 

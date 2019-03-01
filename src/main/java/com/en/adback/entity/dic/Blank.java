@@ -14,6 +14,7 @@ public class Blank extends UserAction{
     private String pareBlankId  ; // 上级品牌id（0，无上级）
     private String pareBlankName;//上级品牌名称
     private String memo  ; // 备注
+    private String pinyin; //拼音
     public Blank() {
     }
 }

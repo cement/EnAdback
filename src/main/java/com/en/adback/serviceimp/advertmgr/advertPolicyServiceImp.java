@@ -29,10 +29,10 @@ public class advertPolicyServiceImp implements IAdvertPolicyService {
     public List<PlayPolicyScreen> allPlayPolicyScreen() {
         List<PlayPolicyScreen> allPlayPolicyScreen = new ArrayList<PlayPolicyScreen>();
         allPlayPolicyScreen.add(
-                new PlayPolicyScreen("p001","开屏播放策略",new ArrayList<Screen>(Arrays.asList(
-                        new Screen("c01","开屏",new ArrayList<ScreenCut>(Arrays.asList(
-                                new ScreenCut("01","开屏提示屏","up","1080*66",""),
-                                new ScreenCut("02","开屏正屏","down","1080*1742","")
+                new PlayPolicyScreen("p001","弹屏播放策略",new ArrayList<Screen>(Arrays.asList(
+                        new Screen("c01","弹屏",new ArrayList<ScreenCut>(Arrays.asList(
+                                new ScreenCut("01","弹屏提示屏","up","1080*66",""),
+                                new ScreenCut("02","弹屏正屏","down","1080*1742","")
                         )),false)
                 )),3,"eq","",false)
         );
@@ -183,7 +183,7 @@ public class advertPolicyServiceImp implements IAdvertPolicyService {
 
     // 保存集合中选中的策略到数据库
     @Override
-    public void insertAdvertPolicys(AdvertPolicys advertPolicys) {
+    public void insertAdvertPolicys(AdvertPolicys advertPolicys,String usedId) {
         TableAdvertPolicys mainp= new TableAdvertPolicys();
         mainp.setAdvertPolicysId(advertPolicys.getAdvertPolicysId());
         mainp.setDevices(advertPolicys.getDevices());
@@ -226,7 +226,7 @@ public class advertPolicyServiceImp implements IAdvertPolicyService {
                      AdvertStateHis advertStateHis= new AdvertStateHis();
                      advertStateHis.setAdvertId(sub.getAdvertId());
                      advertStateHis.setNowState(6);
-                     advertStateHis.setMaker("admin");
+                     advertStateHis.setMaker(usedId);
                      admapper.insertAdvertStateHis(advertStateHis);
                      //修改广告表状态
                      Map<String,Object> pas = new HashMap<String,Object>();
@@ -245,9 +245,7 @@ public class advertPolicyServiceImp implements IAdvertPolicyService {
     Screen choosedScreen=null;
     // 保存集合中选中的策略到redis
     @Override
-
     public void saveAdvertPolicysRedis(AdvertPolicys advertPolicys) {
-
         PlayPolicyScreen playPolicyScreen=advertPolicys.getScreenpolicys().stream()
                 .filter(o->o.isChoosed()).collect(Collectors.toList()).size()==0 ? null : advertPolicys.getScreenpolicys().stream().filter(o->o.isChoosed()).collect(Collectors.toList()).get(0);
 
@@ -285,7 +283,17 @@ public class advertPolicyServiceImp implements IAdvertPolicyService {
     }
 
     // 查询所有存在独播设备
-    public List<DeviceCutAdvert>  aloneExistDeviceIds(String deviceIds,String playDates,String screenId, String screenCutId,String advertId ){
+
+    /**
+     * 查询所有存在独播设备
+     * @param deviceIds
+     * @param playDates
+     * @param screenId
+     * @param screenCutId
+     * @param advertId
+     * @return
+     */
+    public List<DeviceCutAdvert>  aloneExistDeviceIds(String deviceIds,String playDates,String screenId, String screenCutId,String advertId){
         List<DeviceCutAdvert> list = deviceRedis.aloneExistDeviceIds(deviceIds, playDates,screenId,  screenCutId,advertId);
         return list;
     }
@@ -296,5 +304,12 @@ public class advertPolicyServiceImp implements IAdvertPolicyService {
         List<DeviceCutAdvert> list = deviceRedis.insertDeviceIds(deviceIds, playDates,screenId,  screenCutId,playTimeBegin,playTimeEnd,advertId);
         return list;
     }
+
+
+    // 从redis 删除该广告
+    public void delAdvertFromRedis(String advertId){
+        deviceRedis.deleteMsgByAdvertId(advertId);
+    }
+
 
 }

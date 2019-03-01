@@ -5,9 +5,12 @@ import com.en.adback.common.Common;
 import com.en.adback.common.MessageModel;
 import com.en.adback.controller.sys.UserLogs;
 import com.en.adback.entity.advertmgr.AdvertPolicys;
+import com.en.adback.entity.advertmgr.AdvertStateHis;
 import com.en.adback.entity.advertmgr.PlayPolicyScreen;
+import com.en.adback.entity.calpolicy.screencut.Screen;
 import com.en.adback.redisrepo.entity.DeviceCutAdvert;
 import com.en.adback.service.advertmgr.IAdvertPolicyService;
+import com.en.adback.service.advertmgr.IAdvertService;
 import io.swagger.annotations.Api;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -24,6 +27,8 @@ import java.util.Map;
 public class AdvertPolicysCtrl {
     @Autowired
     private IAdvertPolicyService svr;
+    @Autowired
+    private IAdvertService adsvr;
     @Autowired
     private AdvertPolicysLogs logs;
     @Autowired
@@ -71,12 +76,46 @@ public class AdvertPolicysCtrl {
     @PostMapping(value="/saveAdvertPolicys")
     public MessageModel getAdvertPolicys(@RequestBody  AdvertPolicys advertPolicys , HttpServletRequest request) {
         MessageModel m= new MessageModel();
-        svr.insertAdvertPolicys(advertPolicys);
+        AdvertPolicys adPolicys=svr.readAdvertPolicys(advertPolicys.getAdvertPolicysId());
+        String nowEdit="add";
+        if (adPolicys.getPlayDates() !=null && !adPolicys.getPlayDates().equals("")) // 判断是否已存在，存在则为修改更新
+        {
+             // 删除redis 里的存储
+          List<Screen> ls=  adPolicys.getScreenpolicys().stream().filter(spolicy -> spolicy.isChoosed())
+                     .map(PlayPolicyScreen::getScreens).findFirst().get();
+          ls.stream().filter(screen -> screen.isChoosed()).findFirst().get()
+                  .getCutScreenForm().stream().forEach(
+                          scut -> {
+                              if( !scut.getAdvertId().equals("")){
+                                  svr.delAdvertFromRedis(scut.getAdvertId());
+                                  // 设置回审核状态
+                                  AdvertStateHis his = new AdvertStateHis();
+                                  his.setAdvertId(scut.getAdvertId());
+                                  his.setMaker(advertPolicys.getLoginUserId());
+                                  his.setNowState( 3);
+                                  his.setMemo("修改策略改回审核状态");
+                                  int i = adsvr.insertAdvertStateHis(his);
+                                  Map<String,Object> map = new HashMap<String,Object>(){{
+                                      put("advertId",scut.getAdvertId());
+                                      put("nowState",3);
+                                  }};
+                                  adsvr.updateAdvertState(map);
+                              }
+                          }
+          );
+          nowEdit="edit";
+        }
+        svr.insertAdvertPolicys(advertPolicys,advertPolicys.getLoginUserId());
         svr.saveAdvertPolicysRedis(advertPolicys);
         m.setResultCode("1");
         m.setResultMsg("ok");
         String ip= Common.getIpAddr(request);
-        logs.getAdvertPolicysLogs(advertPolicys,ip,"保存策略");
+        if (nowEdit=="add"){
+            logs.getAdvertPolicysLogs(advertPolicys,ip,"添加策略");
+        }else {
+            logs.getAdvertPolicysLogs(advertPolicys,ip,"修改策略(" +advertPolicys.getAdvertPolicysId() +")" );
+        }
+
         return m;
     }
 
@@ -90,7 +129,8 @@ public class AdvertPolicysCtrl {
                                                            paras.get("playDates").toString(),
                                                            paras.get("screenId").toString(),
                                                            paras.get("screenCutId").toString(),
-                                                           paras.get("advertId").toString());
+                                                           paras.get("advertId").toString()
+                                                           );
         m.setData(list);
         String loginUserId = paras.get("loginUserId").toString();
         String loginGroupRoleId = paras.get("loginGroupRoleId").toString();

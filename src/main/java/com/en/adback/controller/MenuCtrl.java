@@ -68,41 +68,43 @@ public class MenuCtrl {
         List<Menu> list= svr.menuList();
         re.put("groupRoleId",actionGroupRoleId);
         String menus = svr.getMenus(re);//取出该小组的权限 字符串形式
-        if(!"0".equals(menus)){//该小组只拥有部分权限
-            String[] menuArray = menus.split(",");// 以逗号隔开 并把每个权限依次放入数组
-            String pareMenuId = "";//单个权限的开始位  如1、2、7等
-            for(int i=0;i<menuArray.length;i++){
-                String menuId = menuArray[i];//循环取出每个权限编号
-                if(!"00".equals(menuId.substring(1))){//如果是子页面 如103、 104、等
-                    re.put("leafMenuId",menuId);
-                    String pareMenuIdTrue = svr.getPareMenuId(re);//从数据库取出子菜单的上级菜单
-                    if(!pareMenuId.equals(pareMenuIdTrue)){
-                        for(Menu menu:list){
-                            if(pareMenuIdTrue.equals(menu.getMenuId())){//子菜单对应的一级菜单
-                                listLast.add(menu);
-                                break;
+        if(null != menus && !"".equals(menus)){
+            if(!"0".equals(menus)){//该小组只拥有部分权限
+                    String[] menuArray = menus.split(",");// 以逗号隔开 并把每个权限依次放入数组
+                    String pareMenuId = "";//单个权限的开始位  如1、2、7等
+                    for(int i=0;i<menuArray.length;i++){
+                        String menuId = menuArray[i];//循环取出每个权限编号
+                        if(!"00".equals(menuId.substring(1))){//如果是子页面 如103、 104、等
+                            re.put("leafMenuId",menuId);
+                            String pareMenuIdTrue = svr.getPareMenuId(re);//从数据库取出子菜单的上级菜单
+                            if(!pareMenuId.equals(pareMenuIdTrue)){
+                                for(Menu menu:list){
+                                    if(pareMenuIdTrue.equals(menu.getMenuId())){//子菜单对应的一级菜单
+                                        listLast.add(menu);
+                                        break;
+                                    }
+                                }
+                            }
+                            pareMenuId = pareMenuIdTrue;
+                            for(Menu menu:list){
+                                if(menuId.equals(menu.getMenuId())|| menuId.equals(menu.getPareMenuId())){//筛选出组管理员拥有权限的菜单列表
+                                    listLast.add(menu);
+                                    break;
+                                }
+                            }
+                        }else{ //该menuId为一级菜单 如800等
+                            for(Menu menu:list){
+                                if(menuId.equals(menu.getMenuId())|| menuId.equals(menu.getPareMenuId())){//筛选出组管理员拥有权限的菜单列表
+                                    listLast.add(menu);
+                                }
                             }
                         }
                     }
-                    pareMenuId = pareMenuIdTrue;
-                    for(Menu menu:list){
-                        if(menuId.equals(menu.getMenuId())|| menuId.equals(menu.getPareMenuId())){//筛选出组管理员拥有权限的菜单列表
-                            listLast.add(menu);
-                            break;
-                        }
-                    }
-                }else{ //该menuId为一级菜单 如800等
-                    for(Menu menu:list){
-                        if(menuId.equals(menu.getMenuId())|| menuId.equals(menu.getPareMenuId())){//筛选出组管理员拥有权限的菜单列表
-                            listLast.add(menu);
-                        }
-                    }
-                }
+            }else{
+                listLast.addAll(list);//该组管理员拥有全部权限
             }
-        }else{
-            listLast.addAll(list);//该组管理员拥有全部权限
+            listLast = listLast.stream().distinct().collect(Collectors.toList());//如果有重复的  去重
         }
-        listLast = listLast.stream().distinct().collect(Collectors.toList());//如果有重复的  去重
         re.put("list",listLast);
         m.setData(re);
         m.setResultCode( list.size()>0 ? "1" :"2");

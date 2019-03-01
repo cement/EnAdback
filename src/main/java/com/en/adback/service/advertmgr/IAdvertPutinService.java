@@ -21,4 +21,7 @@ public interface IAdvertPutinService {
 
     //广告下发后 在广告状态历史里面添加信息
     public int addAdvertHis(Map<String, Object> map);
+
+    //查询广告下发 excel导出
+    List<AdvertPutIn> getAdvertPutInExcel(Map<String, Object> map);
 }

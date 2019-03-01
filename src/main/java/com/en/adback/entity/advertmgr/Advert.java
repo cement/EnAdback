@@ -28,6 +28,7 @@ public class Advert extends UserAction{
     private int nowState;   	//当前状态 (1. 加入未提交审核，2.审核中，3.审核通过，4.审核不通过,5.设置策略,6.待分发， 7.已下发到设备,8.替换9.被替换，10.自动下刊,11.手动下刊)
     private AdvertMedia media;
     private List<AdvertFiles> files;
+    private String state;//当前状态 Excel用到
 
     public Advert() {
     }

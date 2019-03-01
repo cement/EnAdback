@@ -82,4 +82,26 @@ public class UserServiceImpl implements IUserService {
     public List<GroupRole> getGroupRoleForInsert() {
         return mapper.getGroupRoleForInsert();
     }
+
+    @Override
+    public List<User> getUserExcelByAdmin(Map<String, Object> re) {
+        return mapper.getUserExcelByAdmin(re);
+    }
+
+    @Override
+    public List<User> getUserExcelByGroupRoleId(Map<String, Object> re) {
+        return mapper.getUserExcelByGroupRoleId(re);
+    }
+
+    @Override
+    public int bindWx(Map<String, String> re) {
+        return mapper.bindWx(re);
+    }
+
+    @Override
+    public List<User> appUserLogin(User user) {
+        return mapper.appUserLogin(user);
+    }
+
+
 }

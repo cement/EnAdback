@@ -37,5 +37,10 @@ public class AdvertPutinServiceImp implements IAdvertPutinService {
         return mapper.addAdvertHis(map);
     }
 
+    @Override
+    public List<AdvertPutIn> getAdvertPutInExcel(Map<String, Object> map) {
+        return mapper.getAdvertPutInExcel(map);
+    }
+
 
 }

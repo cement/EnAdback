@@ -9,6 +9,7 @@ import org.yeauty.pojo.ParameterMap;
 import org.yeauty.pojo.Session;
 
 import java.io.IOException;
+import java.util.Objects;
 
 @ServerEndpoint(prefix = "app.ad.websocket")
 @Component
@@ -25,7 +26,13 @@ public class WebSocketEndpoint {
             session.sendText("bad request!");
         }
         System.out.println(deviceId);
-        WsSessionManager.putSession(deviceId,session);
+        Session oldSession = WsSessionManager.getSession(deviceId);
+        if (Objects.isNull(oldSession)){
+           WsSessionManager.putSession(deviceId,session);
+        }else{
+            oldSession.close();
+            WsSessionManager.putSession(deviceId,session);
+        }
     }
 
     @OnClose

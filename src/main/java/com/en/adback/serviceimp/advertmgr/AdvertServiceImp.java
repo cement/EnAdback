@@ -115,5 +115,27 @@ public class AdvertServiceImp implements IAdvertService {
         return mapper.getStateHisByAdvertId(map);
     }
 
+    @Override
+    public List<Advert> getMakeExcelAdvertCheck(Map<String, Object> map) {
+        return mapper.getMakeExcelAdvertCheck(map);
+    }
+
+    @Override
+    public int deleteAdvertMedia(Map<String, Object> map) {
+        return mapper.deleteAdvertMedia(map);
+    }
+
+    @Override
+    public int deleteAdvertFiles(Map<String, Object> map) {
+        return mapper.deleteAdvertFiles(map);
+    }
+
+    @Override
+    public int getAdvertCount(Map<String, Object> map) {
+        List<Map<String,Object>> list=mapper.getAdvertCount(map);
+        int count=Integer.parseInt(list.get(0).get("COUNT").toString());
+        return count;
+    }
+
 
 }

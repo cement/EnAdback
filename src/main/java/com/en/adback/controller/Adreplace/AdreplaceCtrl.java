@@ -1,10 +1,9 @@
-package com.en.adback.controller.adreplace;
+package com.en.adback.controller.Adreplace;
 
 import com.en.adback.entity.adreplace.BusinessEnum;
 import com.en.adback.entity.adreplace.ResponseModel;
 import com.en.adback.serviceimp.adreplace.AdreplaceServiceImpl;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -24,21 +23,33 @@ import java.util.stream.Stream;
  * @desc 替换广告分发、下载、回调接口
  */
 
-@Slf4j
 @Api(value="广告分发、下载、回调",tags={"广告分发、下载、回调webapi接口"})
+@Slf4j
 @RestController
-@RequestMapping(value = "/api/adreplace",method = {RequestMethod.GET,RequestMethod.POST})
-public class AdvertReplaceCtrl {
+@RequestMapping(value = "/api/adreplace", method = {RequestMethod.GET,RequestMethod.POST})
+public class AdreplaceCtrl {
 
 
     @Autowired
     private AdreplaceServiceImpl adreplaceService;
 
 
-
-    @ApiOperation( value = "广告下载(同步)分发",notes = "广告下载分发api接口")
+    @ApiOperation( value = "广告下载分发",notes = "广告下载分发api接口")
     @RequestMapping(value = "/dispatch",method = {RequestMethod.POST})
-    public ResponseEntity<List<ResponseModel>> dispatch(String targetUrl,@RequestParam(value = "isAsync",required = false,defaultValue = "false")Boolean isAsync,@RequestParam("fileList") String... fileList){
+    public ResponseEntity<ResponseModel> dispatch(String targetUrl,@RequestParam(value = "isAsync",required = false,defaultValue = "false")Boolean isAsync,@RequestParam("fileList") String fileName){
+        if (isAsync){
+            adreplaceService.dispatchAsync(targetUrl, fileName,isAsync);
+            ResponseModel model = ResponseModel.warp(BusinessEnum.EXECUTING).setData(fileName);
+            return ResponseEntity.ok(model);
+        }else{
+            ResponseModel result = adreplaceService.dispatch(targetUrl, fileName, isAsync);
+            return ResponseEntity.ok(result);
+        }
+    }
+
+    @ApiOperation( value = "多广告下载分发",notes = "广告下载分发api接口")
+    @RequestMapping(value = "/dispatchs",method = {RequestMethod.POST})
+    public ResponseEntity<List<ResponseModel>> dispatchs(String targetUrl,@RequestParam(value = "isAsync",required = false,defaultValue = "false")Boolean isAsync,@RequestParam("fileList") String... fileList){
         if (isAsync){
             Arrays.stream(fileList).parallel().forEach(fileName -> adreplaceService.dispatchAsync(targetUrl, fileName,isAsync));
             ResponseModel model = ResponseModel.warp(BusinessEnum.EXECUTING).setData(fileList);
@@ -52,10 +63,24 @@ public class AdvertReplaceCtrl {
 
 
 
-
-    @ApiOperation( value = "广告上传(同步)分发",notes = "广告上传分发api接口")
+    @ApiOperation( value = "广告上传分发",notes = "广告上传分发api接口")
     @RequestMapping(value = "/upload", method = {RequestMethod.GET, RequestMethod.POST})
-    public ResponseEntity<List<ResponseModel>> upoad(String targetUrl, @RequestParam(value = "isAsync",required = false,defaultValue = "false")Boolean isAsync,@RequestParam("fileList") String... fileList) {
+    public ResponseEntity<ResponseModel> upoad(String targetUrl, @RequestParam(value = "isAsync",required = false,defaultValue = "false")Boolean isAsync,@RequestParam("fileList") String fileName) {
+        if (isAsync){
+            adreplaceService.upLoadAsync(targetUrl, fileName,isAsync);
+            ResponseModel model = ResponseModel.warp(BusinessEnum.EXECUTING).setData(fileName);
+            return ResponseEntity.ok(model);
+        }else{
+            ResponseModel model = adreplaceService.upLoad(targetUrl, fileName, isAsync);
+            return ResponseEntity.ok(model);
+        }
+    }
+
+    @ApiOperation( value = "多广告上传分发",notes = "广告上传分发api接口")
+
+
+    @RequestMapping(value = "/uploads", method = {RequestMethod.GET, RequestMethod.POST})
+    public ResponseEntity<List<ResponseModel>> upoads(String targetUrl, @RequestParam(value = "isAsync",required = false,defaultValue = "false")Boolean isAsync,@RequestParam("fileList") String... fileList) {
         if (isAsync){
             Arrays.stream(fileList).parallel().forEach(fileName -> adreplaceService.upLoadAsync(targetUrl, fileName,isAsync));
             ResponseModel model = ResponseModel.warp(BusinessEnum.EXECUTING).setData(fileList);
@@ -80,11 +105,6 @@ public class AdvertReplaceCtrl {
     public void downLoad(@PathVariable("fileName") String fileName, HttpServletRequest request, HttpServletResponse response) throws IOException {
          adreplaceService.downLoad(fileName,response);
     }
-
-
-
-
-
 
 
 }

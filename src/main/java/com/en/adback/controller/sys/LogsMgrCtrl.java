@@ -1,14 +1,15 @@
 package com.en.adback.controller.sys;
 
+import com.en.adback.common.Common;
 import com.en.adback.common.MessageModel;
 import com.en.adback.controller.MakeExcelCtrl;
 import com.en.adback.entity.Logs;
 import com.en.adback.service.sys.LogsService;
 import io.swagger.annotations.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -16,11 +17,13 @@ import java.util.*;
 
 @Api(value="日志查询",tags={"日志查询webapi 接口"})
 @RestController
+@CrossOrigin
 @RequestMapping(value = "/api/logsMgr", method = {RequestMethod.GET, RequestMethod.POST}, produces = "application/json;charset=UTF-8")
 
 public class LogsMgrCtrl {
 
     @Autowired private LogsService svr;
+    @Autowired private UserLogs ulog;
 
     @ApiOperation( value = "查询日志信息",notes = "" +
             " 返回字段：list{" +
@@ -139,7 +142,7 @@ public class LogsMgrCtrl {
             @ApiResponse(code = 2, message = "服务器内部异常"),
             @ApiResponse(code =3, message = "权限不足") })
     @GetMapping(value = "/logsExcel")
-    public MessageModel logsExcel(String userId,String groupRoleId,String roleId,String beginTime,String endTime){
+    public MessageModel logsExcel(String loginUserId,String loginGroupRoleId,String loginRoleId,String userId, String groupRoleId, String roleId, String beginTime, String endTime, HttpServletRequest req){
         MessageModel m = new MessageModel();
         Map<String,Object> map = new HashMap<>();
         //把截止日期加长一天
@@ -166,7 +169,7 @@ public class LogsMgrCtrl {
         try {
             map.clear();
             mec.writeLogExcel(list);
-            map.put("url","static/excels/日志信息.xls");
+            map.put("url", "excels/logs.xls");
             m.setData(map);
             m.setResultCode("1");
             m.setResultMsg("success");
@@ -174,6 +177,9 @@ public class LogsMgrCtrl {
             m.setResultCode("2");
             m.setResultMsg("error");
         }
+        String ip= Common.getIpAddr(req);
+        ulog.insertGetLogs(loginUserId,loginGroupRoleId,loginRoleId,ip,"生成日志信息到表格");
+
         return m;
     }
 }

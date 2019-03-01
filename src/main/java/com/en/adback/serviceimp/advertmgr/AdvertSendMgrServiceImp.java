@@ -1,6 +1,7 @@
 package com.en.adback.serviceimp.advertmgr;
 
 import com.alibaba.fastjson.JSON;
+import com.en.adback.entity.Logs;
 import com.en.adback.entity.advertmgr.AdvertDayPolicyRole;
 import com.en.adback.entity.advertmgr.AdvertPutIn;
 import com.en.adback.entity.calpolicy.DownDayPolicy;
@@ -60,6 +61,18 @@ public class AdvertSendMgrServiceImp implements IAdvertSendMgrService {
     @Override
     public List<AdvertPutIn> getAdvertSendDetail(Map<String, Object> map) {
         return mapper.getAdvertSendDetail(map);
+    }
+
+    @Override
+    public List<AdvertPutIn> getExcelAdvertSendMgr(Map<String, Object> map) {
+        map.put("pageSize",1000);
+        map.put("pageBegin",0);
+        return mapper.getAdvertSendList(map);
+    }
+
+    @Override
+    public List<Logs> getChangeHistory(Map<String, Object> re) {
+        return mapper.getChangeHistory(re);
     }
 
 }

@@ -127,14 +127,15 @@ public interface UserMapper {
 
     //插入用户
     @Insert("<script>" +
-            "upsert into ad.t_user(userId,userName,tel,roleId,isManager,password, groupRoleId,ifGroupManager) " +
-            " values('${userId}','${userName}','${tel}','${roleId}',${isManager},'${passWord}', '${groupRoleId}',${ifGroupManager})" +
+            "upsert into ad.t_user(userId,userName,tel,roleId,isManager,password, groupRoleId,ifGroupManager,appUser) " +
+            " values('${userId}','${userName}','${tel}','${roleId}',${isManager},'${passWord}', '${groupRoleId}',${ifGroupManager},${appUser})" +
             "</script>")
      int insertUser(User user);
 
+    //修改用户
     @Insert("<script>" +
-            "upsert into ad.t_user(userId,userName,tel,roleId,isManager, groupRoleId,ifGroupManager) " +
-            " values('${userId}','${userName}','${tel}','${roleId}',${isManager},'${groupRoleId}',${ifGroupManager})" +
+            "upsert into ad.t_user(userId,userName,tel,roleId,isManager, groupRoleId,ifGroupManager,appUser) " +
+            " values('${userId}','${userName}','${tel}','${roleId}',${isManager},'${groupRoleId}',${ifGroupManager},${appUser})" +
             "</script>")
     int updateUser(User user);
 
@@ -153,7 +154,71 @@ public interface UserMapper {
     //查询没有确认组管理员的角色组
     @Select("<script>" +
             "  select gr.groupRoleId as groupRoleId,groupRoleName ,gr.memo as memo from ad.t_groupRole gr \n" +
-            " where gr.groupRoleId not in (select groupRoleId from ad.t_user where ifgroupmanager = true)" +
+            " where gr.groupRoleId not in (select groupRoleId from ad.t_user where ifgroupmanager = true) " +
             "</script>")
     List<GroupRole> getGroupRoleForInsert();
+
+    //管理员查询用户信心导出Excel 1000条
+    @Select("<script>" +
+            "select userId,gr.groupRoleName as groupRoleName,r.roleName as roleName,userName,tel,case ifGroupManager when false then '否' when true then '是' end GroupManager from ad. t_user u \n" +
+            " left join ad.t_groupRole gr on gr.groupRoleId = u.groupRoleId\n" +
+            " left join ad.t_role r on r.roleId = u.roleId\n" +
+            " where <![CDATA[ userId <> 'admin' ]]>  " +
+            "<if test='userId!=\"\" and userId!=null '>" +
+            " and userId = '${userId}'" +
+            "</if>" +
+            "<if test='userName!=\"\" and userName!=null '>" +
+            " and userName like '%${userName}%'" +
+            "</if>" +
+            "<if test='tel!=\"\" and tel!=null '>" +
+            " and tel like '%${tel}%'" +
+            "</if>" +
+            "<if test='groupRoleId!=\"\" and groupRoleId!=null and groupRoleId!=\"0\"'>" +
+            " and u.groupRoleId = '${groupRoleId}'" +
+            "</if>" +
+            "<if test='roleId !=\"\" and roleId !=null and roleId !=\"0\"'>" +
+            " and u.roleId = '${roleId}'" +
+            "</if>" +
+            " LIMIT 1000" +
+            "</script>")
+    List<User> getUserExcelByAdmin(Map<String,Object> re);
+
+
+    //组管理员导师用户信息  1000条
+    @Select("<script>" +
+            " select userId,r.roleName as roleName,userName,tel from ad. t_user u \n" +
+            " left join ad.t_role r on r.roleId = u.roleId\n" +
+            " where 1=1 and u.groupRoleId = '${groupRoleId}'\n" +
+            "<if test='userId!=\"\" and userId!=null '>" +
+            " and userId = '${userId}'" +
+            "</if>" +
+            "<if test='userName!=\"\" and userName!=null '>" +
+            " and userName like '%${userName}%'" +
+            "</if>" +
+            "<if test='tel!=\"\" and tel!=null '>" +
+            " and tel like '%${tel}%'" +
+            "</if>" +
+            "<if test='roleId !=\"\" and roleId !=null and roleId !=\"0\"'>" +
+            " and u.roleId = '${roleId}'" +
+            "</if>" +
+            " LIMIT 1000" +
+            "</script>")
+    List<User> getUserExcelByGroupRoleId(Map<String,Object> re);
+
+    //绑定微信
+    @Insert("<script>" +
+            "upsert into ad.t_user(userId,wxOpenId) values('${userId}','${wxOpenId}')" +
+            "</script>")
+    int bindWx(Map<String,String > re);
+
+
+    // 公众号用户登录
+    @Select("<script>" +
+            "select userid,username,tel,u.groupRoleId as groupRoleId,roleId,ifGroupManager,wxOpenId from ad.t_user u\n" +
+            "inner join ad.t_groupRole g on u.groupRoleId = g.groupRoleId\n" +
+            "where u.userId = '${userId}' and passWord = '${passWord}' and g.appFunction = true " +
+            "</script>")
+    List<User> appUserLogin(User user);
+
+
 }

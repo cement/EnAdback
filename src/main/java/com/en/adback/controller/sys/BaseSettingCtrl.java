@@ -13,6 +13,7 @@ import javax.servlet.http.HttpServletRequest;
 
 @Api(value="系统设置",tags={"系统基本设置webapi 接口"})
 @RestController
+@CrossOrigin
 @RequestMapping(value = "/api/sysSetting", method = {RequestMethod.GET, RequestMethod.POST}, produces = "application/json;charset=UTF-8")
 public class BaseSettingCtrl {
 

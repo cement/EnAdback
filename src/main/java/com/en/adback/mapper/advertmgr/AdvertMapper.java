@@ -27,9 +27,14 @@ public interface AdvertMapper {
     @Select("<script>" +
             "select c.adCorpid as adCorpid,c.adCorpName as adCorpName , ad.advertid as advertid,ad.advertName as advertName,ad.uploadTime as uploadTime ,ad.nowState as nowState," +
             " tr.tradeId as tradeId,tr.tradeName as tradeName ,bl.blankId as blankId,bl.blankName as blankName,m.fileName as fileName,m.duration as duration,m.fileSize as fileSize,his.maker as maker from " +
-            " (select adCorpid,advertid,advertName ,uploadTime ,nowState ,tradeId ,blankId FROM ad.t_advert  where nowstate in (${state})) as ad inner join ad.t_advertcorp c on ad.adcorpid=c.adcorpid " +
+            " (select adCorpid,advertid,advertName ,uploadTime ,nowState ,tradeId ,blankId FROM ad.t_advert " +
+            "   where nowstate in (${state}) " +
+            "   <if test ='extraAdvertIds!=null and extraAdvertIds !=\"\"'>" +
+            "         or advertid in(${extraAdvertIds})" +
+            "    </if>" +
+            ") as ad inner join ad.t_advertcorp c on ad.adcorpid=c.adcorpid " +
             " inner join  ad.t_trade tr on ad.tradeId=tr.tradeId inner join  ad.t_blank bl on ad.blankId=bl.blankId "+
-            " inner join ad.t_advert_media m  on ad.advertid=m.advertid inner join ad.t_advert_state_his his on ad.advertid= his.advertid and ad.nowstate=his.nowstate "+
+            " inner join ad.t_advert_media m  on ad.advertid=m.advertid inner join (select distinct advertid,maker from  ad.t_advert_state_his where nowstate=1 ) his on ad.advertid= his.advertid  "+
             " where 1=1"+
             "<if test='advertName!=\"\" and advertName!=null '>" +
             "<![CDATA[ and ad.advertName like '%${advertName}%' ]]>" +
@@ -58,9 +63,14 @@ public interface AdvertMapper {
      */
     @Select("<script>" +
             "select count(*) as total from " +
-            " (select adCorpid,advertid,advertName ,uploadTime ,nowState,tradeId ,blankId FROM ad.t_advert  where nowstate in (${state})) as ad inner join ad.t_advertcorp c on ad.adcorpid=c.adcorpid " +
+            " (select adCorpid,advertid,advertName ,uploadTime ,nowState,tradeId ,blankId FROM ad.t_advert  where nowstate in (${state})" +
+            "      <if test ='extraAdvertIds!=null and extraAdvertIds !=\"\"'> " +
+            "                   or advertid in(${extraAdvertIds}) " +
+            "            </if> " +
+            ") as ad inner join ad.t_advertcorp c on ad.adcorpid=c.adcorpid " +
             " inner join  ad.t_trade tr on ad.tradeId=tr.tradeId inner join  ad.t_blank bl on ad.blankId=bl.blankId "+
-            " inner join ad.t_advert_media m  on ad.advertid=m.advertid inner join ad.t_advert_state_his his on ad.advertid= his.advertid and ad.nowstate=his.nowstate "+
+            " inner join ad.t_advert_media m  on ad.advertid=m.advertid inner join " +
+            "(select distinct advertid,maker from  ad.t_advert_state_his where nowstate=1 ) his on ad.advertid= his.advertid  "+
             " where 1=1"+
             "<if test='advertName!=\"\" and advertName!=null '>" +
             "<![CDATA[ and ad.advertName like '%${advertName}%' ]]>" +
@@ -91,7 +101,7 @@ public interface AdvertMapper {
             " select  c.adCorpid as adCorpid,c.adCorpName as adCorpName , ad.advertid as advertid,ad.advertName as advertName,ad.uploadTime as uploadTime ,ad.nowState as nowState, " +
             "  tr.tradeId as tradeId,tr.tradeName as tradeName ,bl.blankId as blankId,bl.blankName as blankName,m.fileName as fileName,m.duration as duration,m.fileSize as fileSize," +
             "  his.maker as maker from (select adCorpid,advertid,advertName ,uploadTime ,nowState,tradeId,blankId FROM ad.t_advert where nowstate in (2,3,4)  )  ad inner join ad.t_advertcorp c on ad.adcorpid=c.adcorpid inner join ad.t_trade tr on ad.tradeId=tr.tradeId " +
-            "  inner join ad.t_blank bl on ad.blankId=bl.blankId inner join ad.t_advert_media m on ad.advertid=m.advertid inner join ad.t_advert_state_his his on ad.advertid= his.advertid and ad.nowstate=his.nowstate "+
+            "  inner join ad.t_blank bl on ad.blankId=bl.blankId inner join ad.t_advert_media m on ad.advertid=m.advertid inner join (select distinct advertid,maker from  ad.t_advert_state_his where nowstate=1 ) his on ad.advertid= his.advertid  "+
             " where 1=1 "+
             "<if test='advertName!=\"\" and advertName!=null '>" +
             "<![CDATA[ and ad.advertName like '%${advertName}%' ]]> " +
@@ -120,7 +130,7 @@ public interface AdvertMapper {
      */
     @Select("<script>" +
             "  select  count(*) as total  from (select adCorpid,advertid,advertName ,uploadTime ,nowState,tradeId,blankId FROM ad.t_advert where nowstate in (2,3,4)  )  ad inner join ad.t_advertcorp c on ad.adcorpid=c.adcorpid inner join ad.t_trade tr on ad.tradeId=tr.tradeId " +
-            "  inner join ad.t_blank bl on ad.blankId=bl.blankId inner join ad.t_advert_media m on ad.advertid=m.advertid inner join ad.t_advert_state_his his on ad.advertid= his.advertid and ad.nowstate=his.nowstate "+
+            "  inner join ad.t_blank bl on ad.blankId=bl.blankId inner join ad.t_advert_media m on ad.advertid=m.advertid inner join (select distinct advertid,maker from  ad.t_advert_state_his where nowstate=1 ) his on ad.advertid= his.advertid  "+
             " where 1=1 "+
             "<if test='advertName!=\"\" and advertName!=null '>" +
             "<![CDATA[ and ad.advertName like '%${advertName}%' ]]> " +
@@ -194,6 +204,15 @@ public interface AdvertMapper {
     public int insertAdvertFile(AdvertFiles advertFiles);
 
 
+    //删除广告对应的媒体文件
+    @Delete("delete from ad.t_advert_media where advertId='${advertId}' ")
+    public int deleteAdvertMedia(Map<String, Object> map);
+
+    //删除广告对应的资料
+    @Delete("delete from ad.t_advert_files where advertId='${advertId}' ")
+    public int deleteAdvertFiles(Map<String, Object> map);
+
+
 
     @Delete("delete from ad.t_advert where advertId = '${advertId}'")
     int deleteAdvert(Map<String,Object> re);
@@ -218,4 +237,38 @@ public interface AdvertMapper {
             "select advertid,max(nowstate) as state from ad.t_advert_state_his where nowstate in (1,2,3,4) group by advertid\n" +
             ") maxhis on maxhis.advertid=his.advertid and his.nowstate=maxhis.state where his.advertid='${advertId}'</script>")
     public List<AdvertStateHis> getStateHisByAdvertId(Map<String, Object> map);
+
+    //广告审核  导出Excel
+    @Select("<script>" +
+            " select  c.adCorpid as adCorpid,c.adCorpName as adCorpName , ad.advertid as advertid,ad.advertName as advertName,ad.uploadTime as uploadTime ," +
+            " case ad.nowState when 1 then '加入未提交审核' when 2 then '审核中' when 3 then '审核通过' when 4 then '审核不通过' when 5 then '设置策略' when 6 then '待分发'\n" +
+            "  when 7 then '已下发到设备' when 8 then '替换' when 9 then '被替换' when 10 then '自动下刊' when 11 then '手动下刊' end state,  " +
+            "  tr.tradeId as tradeId,tr.tradeName as tradeName ,bl.blankId as blankId,bl.blankName as blankName,m.fileName as fileName,m.duration as duration,m.fileSize as fileSize," +
+            "  his.maker as maker from (select adCorpid,advertid,advertName ,uploadTime ,nowState,tradeId,blankId FROM ad.t_advert where nowstate in (2,3,4)  )  ad inner join ad.t_advertcorp c on ad.adcorpid=c.adcorpid inner join ad.t_trade tr on ad.tradeId=tr.tradeId " +
+            "  inner join ad.t_blank bl on ad.blankId=bl.blankId inner join ad.t_advert_media m on ad.advertid=m.advertid inner join (select distinct advertid,maker from  ad.t_advert_state_his where nowstate=1 ) his on ad.advertid= his.advertid  "+
+            " where 1=1 "+
+            "<if test='advertName!=\"\" and advertName!=null '>" +
+            "<![CDATA[ and ad.advertName like '%${advertName}%' ]]> " +
+            "</if>" +
+            "<if test='tradeId != \"0\"  '>" +
+            " and tr.tradeId  ='${tradeId}' " +
+            "</if>" +
+            "<if test='adCorpName!=\"\" and adCorpName!=null '>" +
+            " <![CDATA[ and c.adCorpName like '%${adCorpName}%' ]]>" +
+            "</if>" +
+            "<if test='blankId!=\"0\"  '>" +
+            " and bl.blankId='${blankId}' " +
+            "</if>" +
+            "<if test='uploadTimeBegin!=\"\" and uploadTimeBegin!=null and uploadTimeEnd!=null and uploadTimeEnd!=\"\" '>" +
+            "   <![CDATA[ and  ad.uploadTime  between to_date('${uploadTimeBegin} 08','yyyy-MM-dd hh') and to_date('${uploadTimeEnd} 08','yyyy-MM-dd hh') ]]>" +
+            "</if>" +
+            " order by ad.nowState asc,ad.uploadTime desc limit 1000 " +
+            "</script>")
+    List<Advert> getMakeExcelAdvertCheck(Map<String, Object> map);
+
+    @Select("select count(*) as count from ad.t_advert a " +
+            "inner join ad.t_sub_advert_policys sap on a.advertId=sap.advertId " +
+            "inner join ad.t_advert_policys ap on ap.advertPolicysId=sap.advertPolicysId " +
+            "where substr(ap.playDates,0,10)<='${nowDate}' and substr(ap.playDates,-10)>='${nowDate}' ")
+    List<Map<String, Object>> getAdvertCount(Map<String, Object> map);
 }

@@ -1,8 +1,12 @@
 package com.en.adback.entity.devicemgr;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class AllDevice {
     private String   deviceId  ;//  	设备编号
     private String   receiveTime ;//  	入库时间
@@ -22,6 +26,6 @@ public class AllDevice {
     private String   stateTime      ;//           最后状态改变时间
     private int      beds  ;   // 床位数
     private String   address ; //  地址
-    public AllDevice() {
-    }
+    private int playCounts;//播放频次
+
 }

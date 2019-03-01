@@ -43,4 +43,16 @@ public interface IUserService {
 
     List<GroupRole> getGroupRoleForInsert();
 
+    //导出excel 管理员
+    List<User> getUserExcelByAdmin(Map<String,Object> re);
+    //导出Excel 组管理员
+    List<User> getUserExcelByGroupRoleId(Map<String,Object> re);
+
+    //绑定微信
+    int bindWx(Map<String,String > re);
+
+    //公众号用户登录
+    List<User> appUserLogin(User user);
+
+
 }

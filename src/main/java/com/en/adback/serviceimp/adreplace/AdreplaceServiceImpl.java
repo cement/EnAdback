@@ -1,25 +1,21 @@
 package com.en.adback.serviceimp.adreplace;
 
 import com.alibaba.fastjson.JSON;
-import com.en.adback.controller.adreplace.AdvertReplaceCtrl;
 import com.en.adback.entity.adreplace.BusinessEnum;
 import com.en.adback.entity.adreplace.ResponseModel;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.FileSystemResource;
-import org.springframework.core.io.Resource;
-import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -39,8 +35,6 @@ public class AdreplaceServiceImpl {
 
     @Autowired
     private RestTemplate restTemplate;
-    @Autowired
-    private AdvertReplaceCtrl advertReplaceCtrl;
 
     /*提供从本服务器下载功能*/
     public void downLoad(String fileName, HttpServletResponse response) throws IOException {
@@ -54,12 +48,16 @@ public class AdreplaceServiceImpl {
     /*从本服务器上传到市州服务器*/
     public ResponseModel upLoad(String targetUrl, String fileName,Boolean isAsync) {
 
+        log.info("开始上传：{}",fileName);
         Path filePath = Paths.get(advertDir, fileName);
-        if (Files.notExists(filePath)){
+        if (StringUtils.isEmpty(fileName) || Files.notExists(filePath)){
             ResponseModel model = ResponseModel.warp(BusinessEnum.UNEXIST).setData(fileName);
-            this.asyncCallback(JSON.toJSONString(model));
             return model;
-
+        }
+        Boolean isexist = restTemplate.getForObject(targetUrl + "/isexist?fileName="+fileName, Boolean.class);
+        if (isexist){
+            ResponseModel model = ResponseModel.warp(BusinessEnum.EXISTED).setData(fileName);
+            return model;
         }
         FileSystemResource resource = new FileSystemResource(filePath);
         MultiValueMap<String, Object> param = new LinkedMultiValueMap<>();
@@ -73,15 +71,16 @@ public class AdreplaceServiceImpl {
 
     @Async
     public void upLoadAsync(String targetUrl, String fileName,Boolean isAsync) {
-        upLoad(targetUrl,fileName,isAsync);
+        ResponseModel model = upLoad(targetUrl, fileName, isAsync);
+        this.asyncCallback(JSON.toJSONString(model));
     }
 
     /*从本服务器下发文件名，市州服务器自主从本服务器下载*/
     public ResponseModel dispatch(String targetUrl,String fileName,Boolean isAsync){
+        log.info("开始下发：{}",fileName);
         Path filePath = Paths.get(advertDir, fileName);
-        if (Files.notExists(filePath)){
+        if (StringUtils.isEmpty(fileName) || Files.notExists(filePath)){
             ResponseModel model = ResponseModel.warp(BusinessEnum.UNEXIST).setData(fileName);
-            this.asyncCallback(JSON.toJSONString(model));
             return model;
         }else{
             MultiValueMap<String, Object> param = new LinkedMultiValueMap<>();
@@ -93,7 +92,8 @@ public class AdreplaceServiceImpl {
     }
     @Async
     public void dispatchAsync(String targetUrl,String fileName,Boolean isAsync){
-        dispatch(targetUrl,fileName,isAsync);
+        ResponseModel model = dispatch(targetUrl, fileName, isAsync);
+        this.asyncCallback(JSON.toJSONString(model));
     }
 
 

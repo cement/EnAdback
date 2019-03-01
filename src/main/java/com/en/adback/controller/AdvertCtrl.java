@@ -3,7 +3,9 @@ package com.en.adback.controller;
 
 import com.en.adback.common.Common;
 import com.en.adback.common.MessageModel;
+import com.en.adback.controller.advertmgr.AdvertCheckExcelCtrl;
 import com.en.adback.controller.sys.UserLogs;
+import com.en.adback.entity.Logs;
 import com.en.adback.entity.advertmgr.Advert;
 import com.en.adback.entity.advertmgr.AdvertFiles;
 import com.en.adback.entity.advertmgr.AdvertMedia;
@@ -15,6 +17,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -24,6 +27,7 @@ import java.util.Map;
 
 @Api(value="广告查询统计",tags={"广告查询统计webapi接口"})
 @RestController
+@CrossOrigin
 @RequestMapping(value = "/api/advert", method = {RequestMethod.GET, RequestMethod.POST}, produces = "application/json;charset=UTF-8")
 public class AdvertCtrl {
     @Autowired
@@ -51,7 +55,7 @@ public class AdvertCtrl {
             @ApiResponse(code =3, message = "权限不足") })
     @GetMapping(value = "/advertList")
     public MessageModel advertList(String state , String advertName,String tradeId,String adCorpName,String blankId ,
-                                   String uploadTimeBegin,String uploadTimeEnd,int pageSize,int pageNo,String loginUserId,
+                                   String uploadTimeBegin,String uploadTimeEnd,String extraAdvertIds,int pageSize,int pageNo,String loginUserId,
                                    String loginGroupRoleId,String loginRoleId,HttpServletRequest request)
     {
         MessageModel model=new MessageModel();
@@ -61,6 +65,7 @@ public class AdvertCtrl {
         map.put("tradeId",tradeId);
         map.put("adCorpName",adCorpName);
         map.put("blankId",blankId);
+        map.put("extraAdvertIds", (extraAdvertIds==null || extraAdvertIds.equals("")) ? "" : "'" + extraAdvertIds.replace(",","','")+"'" );
         map.put("uploadTimeBegin",uploadTimeBegin);
         //把截止日期加长一天
         if (uploadTimeEnd !=null && !uploadTimeEnd.equals("")) {
@@ -103,7 +108,7 @@ public class AdvertCtrl {
             @ApiResponse(code =3, message = "权限不足") })
     @GetMapping(value = "/advertCount")
     public MessageModel advertCount(String state , String advertName,String tradeId,String adCorpName,String blankId ,
-                                    String uploadTimeBegin,String uploadTimeEnd)
+                                    String uploadTimeBegin,String uploadTimeEnd,String extraAdvertIds)
     {
         MessageModel model=new MessageModel();
         Map<String,Object> map=new HashMap<String, Object>();
@@ -113,6 +118,7 @@ public class AdvertCtrl {
         map.put("adCorpName",adCorpName);
         map.put("blankId",blankId);
         map.put("uploadTimeBegin",uploadTimeBegin);
+        map.put("extraAdvertIds", (extraAdvertIds==null || extraAdvertIds.equals("")) ? "" : "'" + extraAdvertIds.replace(",","','")+"'" );
         //把截止日期加长一天
         if (uploadTimeEnd !=null && !uploadTimeEnd.equals("")) {
             SimpleDateFormat f = new SimpleDateFormat("yyyy-MM-dd");
@@ -285,17 +291,17 @@ public class AdvertCtrl {
         int i = svr.insertAdvert(advert);
 
         // 插入广告媒体
-          svr.insertAdvertMedia(advert.getMedia());
+        svr.insertAdvertMedia(advert.getMedia());
         //插入广告资料表
-         for(int j=0; j<advert.getFiles().size() ;j++)
-         {
-             svr.insertAdvertFile(advert.getFiles().get(j));
-         }
-       // 插入广告历史状态表
+        for(int j=0; j<advert.getFiles().size() ;j++)
+        {
+            svr.insertAdvertFile(advert.getFiles().get(j));
+        }
+        // 插入广告历史状态表
         AdvertStateHis advertStateHis = new AdvertStateHis();
         advertStateHis.setAdvertId(advert.getAdvertId());
         advertStateHis.setNowState(1);
-        advertStateHis.setMaker("admin");
+        advertStateHis.setMaker(advert.getMaker());
         int i1 = svr.insertAdvertStateHis(advertStateHis);
         model.setResultCode("1");
         model.setData(map);
@@ -323,7 +329,19 @@ public class AdvertCtrl {
         Map<String,Object> map=new HashMap<String, Object>();
         SimpleDateFormat sdf=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         advert.setUploadTime(sdf.format(new Date()));
+        //修改广告表
         int i = svr.updateAdvert(advert);
+        map.put("advertId",advert.getAdvertId());
+        //删除广告媒体表
+        int dmc=svr.deleteAdvertMedia(map);
+        int imc=svr.insertAdvertMedia(advert.getMedia());
+        //删除广告资料表
+        int dfc=svr.deleteAdvertFiles(map);
+        //添加 insertFileCount
+        for (int j = 0; j < advert.getFiles().size(); j++) {
+            int ifc=svr.insertAdvertFile(advert.getFiles().get(j));
+        }
+        map.clear();
         // next value for my_advert_state_his
         AdvertStateHis advertStateHis = new AdvertStateHis();
         advertStateHis.setAdvertId(advert.getAdvertId());
@@ -353,7 +371,8 @@ public class AdvertCtrl {
         Map<String,Object> map=new HashMap<String, Object>();
         map.put("advertId",advertId);
         int i = svr.deleteAdvert(map);
-        model.setResultCode(i==1?"1":"2");
+        map.put("list",i);
+        model.setData(map);
         model.setResultMsg("success");
         String ip= Common.getIpAddr(request);
         ulogs.insertGetLogs(loginUserId,loginGroupRoleId,loginRoleId,ip,"删除广告");
@@ -447,11 +466,151 @@ public class AdvertCtrl {
         map.put("advertHis",advertHis);
         model.setResultCode("1");
         model.setData(map);
-        model.setResultMsg("success");String ip= Common.getIpAddr(request);
+        model.setResultMsg("success");
+        String ip= Common.getIpAddr(request);
         ulogs.insertGetLogs(loginUserId,loginGroupRoleId,loginRoleId,ip,"根据广告编号获取最新的状态历史");
 
         return model;
 
+    }
+
+
+    @ApiOperation( value = "查询数据生成表格",notes = "" +
+            " 返回字段：list{}" +
+            " resultCode," +
+            " resultMsg : 'ok' ：成功 ，否则返回错误信息")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "beginTime", value = "查询开始时间", required = false, dataType = "String", paramType = "query"),
+            @ApiImplicitParam(name = "endTime", value = "查询结束时间", required = false, dataType = "String", paramType = "query"),
+            @ApiImplicitParam(name = "groupRoleId", value = "所属分组id", required = false, dataType = "String", paramType = "query"),
+            @ApiImplicitParam(name = "roleId", value = "角色id", required = false, dataType = "String", paramType = "query"),
+            @ApiImplicitParam(name = "userId", value = "用户账号", required = false, dataType = "String", paramType = "query"),
+    }
+    )
+    @ApiResponses({ @ApiResponse(code = 1, message = "操作成功"),
+            @ApiResponse(code = 2, message = "服务器内部异常"),
+            @ApiResponse(code =3, message = "权限不足") })
+    @GetMapping(value = "/advertExcel")
+    public MessageModel logsExcel(String state , String advertName,String tradeId,String adCorpName,String blankId ,
+                                  String uploadTimeBegin,String uploadTimeEnd,String loginUserId,
+                                  String loginGroupRoleId,String loginRoleId,HttpServletRequest request){
+        MessageModel m = new MessageModel();
+        Map<String,Object> map = new HashMap<>();
+        map.put("state", state);
+        map.put("advertName",advertName);
+        map.put("tradeId",tradeId);
+        map.put("adCorpName",adCorpName);
+        map.put("blankId",blankId);
+        map.put("uploadTimeBegin",uploadTimeBegin);
+        //把截止日期加长一天
+        if (uploadTimeEnd !=null && !uploadTimeEnd.equals("")) {
+            SimpleDateFormat f = new SimpleDateFormat("yyyy-MM-dd");
+            try {
+                Date d = new Date(f.parse(uploadTimeEnd).getTime() + 24 * 3600 * 1000);
+                uploadTimeEnd = f.format(d);
+            } catch (ParseException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }//
+        }
+
+        map.put("uploadTimeEnd",uploadTimeEnd);
+        map.put("pageBegin",0);
+        map.put("pageSize",1000);
+        List<Advert> list = svr.advertList(map);
+        //将数据写入表格中
+        AdverrtExcelCtrl mec=new AdverrtExcelCtrl();
+        try {
+            map.clear();
+            mec.writeLogExcel(list);
+            map.put("url","static/excels/advertupload.xls");
+            m.setData(map);
+            m.setResultCode("1");
+            m.setResultMsg("success");
+        } catch (IOException e) {
+            m.setResultCode("2");
+            m.setResultMsg("error");
+        }
+        String ip= Common.getIpAddr(request);
+        ulogs.insertGetLogs(loginUserId,loginGroupRoleId,loginRoleId,ip,"查询管广告数据生成表格");
+
+        return m;
+    }
+
+    @ApiOperation( value = "条件查询导出Excel，广告审核",notes = "条件查询，广告审核" )
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "advertName", value = "广告名称", required = false, dataType = "String", paramType = "query"),
+            @ApiImplicitParam(name = "tradeId", value = "行业ID", required = false, dataType = "String", paramType = "query"),
+            @ApiImplicitParam(name = "adCorpName", value = "广告公司名称", required = false, dataType = "String", paramType = "query"),
+            @ApiImplicitParam(name = "blankId", value = "品牌id", required = false, dataType = "String", paramType = "query"),
+            @ApiImplicitParam(name = "uploadTimeBegin", value = "上传日期起", required = false, dataType = "String", paramType = "query"),
+            @ApiImplicitParam(name = "uploadTimeEnd", value = "上传日期止", required = false, dataType = "String", paramType = "query"),
+    })
+    @ApiResponses({ @ApiResponse(code = 1, message = "操作成功"),
+            @ApiResponse(code = 2, message = "服务器内部异常"),
+            @ApiResponse(code =3, message = "权限不足") })
+    @GetMapping(value = "/getAdvertCheckExcel")
+    public MessageModel getAdvertCheckExcel(String advertName,String tradeId,String adCorpName,String blankId ,
+                                            String uploadTimeBegin,String uploadTimeEnd,String loginUserId,
+                                            String loginGroupRoleId,String loginRoleId,HttpServletRequest request)
+    {
+        MessageModel model=new MessageModel();
+        Map<String,Object> map=new HashMap<String, Object>();
+        map.put("advertName",advertName);
+        map.put("tradeId",tradeId);
+        map.put("adCorpName",adCorpName);
+        map.put("blankId",blankId);
+        map.put("uploadTimeBegin",uploadTimeBegin);
+        //把截止日期加长一天
+        if (uploadTimeEnd !=null && !uploadTimeEnd.equals("")) {
+            SimpleDateFormat f = new SimpleDateFormat("yyyy-MM-dd");
+            try {
+                Date d = new Date(f.parse(uploadTimeEnd).getTime() + 24 * 3600 * 1000);
+                uploadTimeEnd = f.format(d);
+            } catch (ParseException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }//
+        }
+        map.put("uploadTimeEnd",uploadTimeEnd);
+        List<Advert> list = svr.getMakeExcelAdvertCheck(map);
+        AdvertCheckExcelCtrl ace = new AdvertCheckExcelCtrl();
+        try {
+            ace.writeAdvertCheckExcel(list);
+            model.setData(1);
+        } catch (IOException e) {
+            model.setData(2);
+            e.printStackTrace();
+        }
+
+        model.setResultCode(list.size()>0?"1":"2");
+        model.setResultMsg("success");
+        String ip= Common.getIpAddr(request);
+        ulogs.insertGetLogs(loginUserId,loginGroupRoleId,loginRoleId,ip,"广告审核查询导出excel");
+        return model;
+    }
+
+
+    @ApiOperation( value = "获取广告数量",notes = "获取当前时间在播放时间段内的广告数量" )
+    @ApiImplicitParams({
+    })
+    @ApiResponses({ @ApiResponse(code = 1, message = "操作成功"),
+            @ApiResponse(code = 2, message = "服务器内部异常"),
+            @ApiResponse(code =3, message = "权限不足") })
+    @GetMapping(value = "/getAdvertCount")
+    public MessageModel getAdvertCount(){
+        MessageModel model=new MessageModel();
+        Map<String,Object> map=new HashMap<String, Object>();
+        Date date=new Date();
+        SimpleDateFormat sdf=new SimpleDateFormat("yyyy-MM-dd");
+        String nowDate=sdf.format(date);
+        map.put("nowDate",nowDate);
+        int count=svr.getAdvertCount(map);
+        map.put("count",count);
+        model.setData(map);
+        model.setResultCode("1");
+        model.setResultMsg("success");
+        return model;
     }
 
 

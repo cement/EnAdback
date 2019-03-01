@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
+@CrossOrigin
 @RequestMapping(value = "/advertCorpQuery", method = {RequestMethod.GET,RequestMethod.POST}, produces = "application/json;charset=UTF-8")
 public class EnterpriseCtrl {
 

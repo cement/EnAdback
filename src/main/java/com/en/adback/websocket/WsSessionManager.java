@@ -16,6 +16,9 @@ public class WsSessionManager {
     public static Session putSession(String deviceId,Session session){
         return sessionMap.put(deviceId, session);
     }
+    public static Session getSession(String deviceId){
+        return sessionMap.get(deviceId);
+    }
 
     public static Session removeSession(String deviceId){
         return sessionMap.remove(deviceId);

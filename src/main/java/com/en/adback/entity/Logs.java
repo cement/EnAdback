@@ -13,4 +13,8 @@ public class Logs {
     private String ip;
     private String logContent;
     private String actionTime;
+    private String userName;
+
+    public Logs() {
+    }
 }

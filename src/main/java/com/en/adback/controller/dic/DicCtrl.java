@@ -7,6 +7,11 @@ import com.en.adback.entity.sys.Role;
 import com.en.adback.entity.sys.User;
 import com.en.adback.service.dic.DicService;
 import io.swagger.annotations.Api;
+import net.sourceforge.pinyin4j.PinyinHelper;
+import net.sourceforge.pinyin4j.format.HanyuPinyinOutputFormat;
+import net.sourceforge.pinyin4j.format.HanyuPinyinToneType;
+import net.sourceforge.pinyin4j.format.HanyuPinyinVCharType;
+import net.sourceforge.pinyin4j.format.exception.BadHanyuPinyinOutputFormatCombination;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -42,6 +47,28 @@ public class DicCtrl {
     public Map<String,Object> getAdvertCorpList(){
         Map<String,Object> re = new HashMap<>();
         List<AdvertCorp> list = svr.getAdvertCorpList();
+        for(int j=0;j<list.size();j++){
+            String adCorpName = list.get(j).getAdCorpName();
+            StringBuilder pinyin = new StringBuilder();
+            for (int i = 0; i < adCorpName.length(); i++) {
+                HanyuPinyinOutputFormat defaultFormat = new HanyuPinyinOutputFormat();
+                defaultFormat.setToneType(HanyuPinyinToneType.WITHOUT_TONE);  //不带声调
+                defaultFormat.setVCharType(HanyuPinyinVCharType.WITH_V);
+                char c = adCorpName.charAt(i);
+                String[] pinyinArray = null;
+                try {
+                    pinyinArray = PinyinHelper.toHanyuPinyinStringArray(c, defaultFormat);
+                } catch (BadHanyuPinyinOutputFormatCombination e) {
+                    e.printStackTrace();
+                }
+                if (pinyinArray != null && pinyinArray.length>0) {
+                    pinyin.append(pinyinArray[0]);
+                } else if (c != ' ') {
+                    pinyin.append(adCorpName.charAt(i));
+                }
+            }
+            list.get(j).setPinyin(pinyin.toString().trim().toLowerCase());
+        }
         re.put("list",list);
         return re;
     }
@@ -60,6 +87,28 @@ public class DicCtrl {
     public Map<String,Object> getBlankList(){
         Map<String,Object> re = new HashMap<>();
         List<Blank> list = svr.getBlankList();
+        for(int j=0;j<list.size();j++){
+            String blankName = list.get(j).getBlankName();
+            StringBuilder pinyin = new StringBuilder();
+            for (int i = 0; i < blankName.length(); i++) {
+                HanyuPinyinOutputFormat defaultFormat = new HanyuPinyinOutputFormat();
+                defaultFormat.setToneType(HanyuPinyinToneType.WITHOUT_TONE);
+                defaultFormat.setVCharType(HanyuPinyinVCharType.WITH_V);
+                char c = blankName.charAt(i);
+                String[] pinyinArray = null;
+                try {
+                    pinyinArray = PinyinHelper.toHanyuPinyinStringArray(c, defaultFormat);
+                } catch (BadHanyuPinyinOutputFormatCombination e) {
+                    e.printStackTrace();
+                }
+                if (pinyinArray != null && pinyinArray.length>0) {
+                    pinyin.append(pinyinArray[0]);
+                } else if (c != ' ') {
+                    pinyin.append(blankName.charAt(i));
+                }
+            }
+            list.get(j).setPinyin(pinyin.toString().trim().toLowerCase());
+        }
         re.put("list",list);
         return re;
     }
@@ -78,6 +127,29 @@ public class DicCtrl {
     public Map<String,Object> getTradeList(){
         Map<String,Object> re = new HashMap<>();
         List<Trade> list = svr.getTradeList();
+        for(int j=0;j<list.size();j++){
+            String selectTradeName = list.get(j).getTradeName();
+            StringBuilder pinyin = new StringBuilder();
+            for (int i = 0; i < selectTradeName.length(); i++) {
+                HanyuPinyinOutputFormat defaultFormat = new HanyuPinyinOutputFormat();
+                defaultFormat.setToneType(HanyuPinyinToneType.WITHOUT_TONE);
+                defaultFormat.setVCharType(HanyuPinyinVCharType.WITH_V);
+                char c = selectTradeName.charAt(i);
+                String[] pinyinArray = null;
+                try {
+                    pinyinArray = PinyinHelper.toHanyuPinyinStringArray(c, defaultFormat);
+                } catch (BadHanyuPinyinOutputFormatCombination e) {
+                    e.printStackTrace();
+                }
+                if (pinyinArray != null && pinyinArray.length>0) {
+                    pinyin.append(pinyinArray[0]);
+                }
+                else if (c != ' ') {
+                    pinyin.append(selectTradeName.charAt(i));
+                }
+            }
+            list.get(j).setPinyin(pinyin.toString().trim().toLowerCase());
+        }
         re.put("list",list);
         return re;
     }
@@ -143,4 +215,8 @@ public class DicCtrl {
         m.setResultMsg("ok");
         return m;
     }
+
+
+
+
 }

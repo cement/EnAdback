@@ -20,7 +20,7 @@ public class AdvertCorp extends UserAction{
     private String linkMan ; // 联系人
     private String addTime; // 加入时间
     private String addUser ; // 添加人
-
+    private String pinyin; //拼音
 
     public AdvertCorp() {
     }

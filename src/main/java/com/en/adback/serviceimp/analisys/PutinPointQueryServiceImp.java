@@ -24,6 +24,7 @@ public class PutinPointQueryServiceImp implements PutinPointQueryService {
             put("beginDate",beginDate);
             put("endDate",endDate);
         }};
+
        List<TableAdvertPolicys> plist= mapper.allAdvertPolicysList(paras);
        ptlist=new ArrayList<TableAdvertPolicys>();
        // 过滤掉非查询设备的策略

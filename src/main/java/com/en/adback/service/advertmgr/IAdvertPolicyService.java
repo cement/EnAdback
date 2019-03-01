@@ -15,7 +15,7 @@ public interface IAdvertPolicyService {
     public AdvertPolicys readAdvertPolicys(String advertPolicysId);
 
     // 保存集合中选中的策略到数据库
-    public void insertAdvertPolicys(AdvertPolicys advertPolicys);
+    public void insertAdvertPolicys(AdvertPolicys advertPolicys,String usedId);
 
 
     //保存策略到redis
@@ -31,4 +31,6 @@ public interface IAdvertPolicyService {
     // 查询于插播时间段重合的插播设备
     public List<DeviceCutAdvert> insertDeviceIds(String deviceIds,String playDates,String screenId, String screenCutId,String playTimeBegin,String playTimeEnd,String advertId );
 
+    // 从redis 删除该广告
+    public void delAdvertFromRedis(String advertId);
 }

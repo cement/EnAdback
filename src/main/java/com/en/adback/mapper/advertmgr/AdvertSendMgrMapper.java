@@ -1,5 +1,6 @@
 package com.en.adback.mapper.advertmgr;
 
+import com.en.adback.entity.Logs;
 import com.en.adback.entity.advertmgr.AdvertDayPolicyRole;
 import com.en.adback.entity.advertmgr.AdvertPutIn;
 import org.apache.ibatis.annotations.Mapper;
@@ -13,8 +14,9 @@ import java.util.Map;
 public interface AdvertSendMgrMapper {
     //查询广告信息
     @Select("<script> " +
-            "select ad.adid advertId,ad.advertname advertName,ad.adcorpName adCorpName,ad.tradeName tradeName,ad.blankName blankName,media.filename fileName,media.downloadfilename downLoadFileName,media.duration duration,media.filesize fileSize," +
-            "policy.pAdPolicyId as advertPolicyId, policy.devices,policy.playAlone playAlone,policy.putInKind putInKind,policyscreen.policyName policyName," +
+            "select ad.adid advertId,ad.advertname advertName,ad.adcorpName adCorpName,ad.tradeName tradeName,ad.blankName blankName," +
+            "media.filename fileName,media.downloadfilename downLoadFileName,media.duration duration,media.filesize fileSize," +
+            "policy.pAdPolicyId as advertPolicyId, policy.devices,policy.playAlone playAlone,policy.putInKind putInKind,policy.screenPolicyId screenPolicyId," +
             "screen.screenCutName screen,screen.position screenPosition,policy.playDates playDays,ad.nowstate nowState," +
             "stathis.maketimer checkDay from\n" +
             " (\n" +
@@ -35,8 +37,8 @@ public interface AdvertSendMgrMapper {
             "<if test='blankId!=null and blankId!=\"\" and blankId!=\"0\" '>" +
             " and ad.t_advert.blankId='${blankId}' " +
             "</if>" +
-            "<if test='adCorpId!=null and adCorpId!=\"\" and adCorpId!=\"0\" '>" +
-            "<![CDATA[ and adcorp.adCorpId = '${adCorpId}' ]]>" +
+            "<if test='adCorpName!=null and adCorpName!=\"\"'>" +
+            "<![CDATA[ and adcorp.adcorpName like '%${adCorpName}%' ]]>" +
             "</if>" +
             "<if test='nowState!=null and nowState!=\"\" and nowState!=0 '>" +
             "<![CDATA[ and ad.t_advert.nowstate = ${nowState} ]]>" +
@@ -58,10 +60,6 @@ public interface AdvertSendMgrMapper {
             "(\n" +
             "select screenCutId as sCutId,screenCutName ,position from ad.t_screen_cut \n" +
             ")screen on screen.sCutId = subpolicy.screenCutId\n" +
-            "left join " +
-            "(\n" +
-            "select screenpolicyId as scPolicyId,policyName from ad.t_play_policy_screen \n" +
-            ")policyscreen on policyscreen.scPolicyId =policy.screenPolicyId\n" +
             "where 1=1 " +
             "<if test='checkTime!=null and checkTime!=\"\" and endCheckTime!=null and endCheckTime!=\"\" '>" +
             "<![CDATA[ and maketimer>=to_date('${checkTime} 08','yyyy-MM-dd hh') and maketimer <=to_date('${endCheckTime} 08','yyyy-MM-dd hh') ]]>" +
@@ -89,8 +87,8 @@ public interface AdvertSendMgrMapper {
             "<if test='blankId!=null and blankId!=\"\" and blankId!=\"0\" '>" +
             " and ad.t_advert.blankId='${blankId}' " +
             "</if>" +
-            "<if test='adCorpId!=null and adCorpId!=\"\" and adCorpId!=\"0\" '>" +
-            "<![CDATA[ and adcorp.adCorpId = '${adCorpId}' ]]>" +
+            "<if test='adCorpName!=null and adCorpName!=\"\"'>" +
+            "<![CDATA[ and adcorp.adcorpName like '%${adCorpName}%' ]]>" +
             "</if>" +
             "<if test='nowState!=null and nowState!=\"\" and nowState!=\"0\" '>" +
             "<![CDATA[ and ad.t_advert.nowState = ${nowState} ]]>" +
@@ -170,4 +168,14 @@ public interface AdvertSendMgrMapper {
             "inner join ad.t_play_policy_screen pc on pc.screenPolicyId=ap.screenPolicyId\n" +
             "inner join ad.t_screen_cut sc on sc.screenCutId=sap.screenCutId")
     public List<AdvertPutIn> getAdvertSendDetail(Map<String, Object> map);
+
+
+    //查询广告导出excel信息
+
+    @Select("<script>" +
+            "select TO_CHAR(actionTime,'yyyy-MM-dd HH:mm:ss') as actionTime,lo.userId as userId ,u.userName as userName ,lo.logcontent  from (\n" +
+            "select actionTime,userId,logcontent from ad.t_logs where logcontent like '%${advertPolicyId}%') lo \n" +
+            "inner join ad.t_user u on lo.userId = u.userId" +
+            "</script>")
+    List<Logs> getChangeHistory(Map<String,Object> re);
 }

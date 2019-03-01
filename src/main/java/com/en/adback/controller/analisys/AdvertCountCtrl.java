@@ -1,8 +1,11 @@
 package com.en.adback.controller.analisys;
 
+import com.alibaba.fastjson.JSON;
 import com.en.adback.common.Common;
 import com.en.adback.common.MessageModel;
+import com.en.adback.controller.MakeExcelCtrl;
 import com.en.adback.controller.sys.UserLogs;
+import com.en.adback.entity.AdvertAudience;
 import com.en.adback.entity.AdvertCount;
 import com.en.adback.entity.advertmgr.AdvertDayPolicyRole;
 import com.en.adback.entity.advertmgr.AdvertPutIn;
@@ -12,15 +15,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
+import java.lang.reflect.Array;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Api(value="广告统计查询",tags={"广告统计查询webapi 接口"})
 @RestController
+@CrossOrigin
 @RequestMapping(value = "/api/advertCount", method = {RequestMethod.GET, RequestMethod.POST}, produces = "application/json;charset=UTF-8")
 
 public class AdvertCountCtrl {
@@ -250,6 +252,64 @@ public class AdvertCountCtrl {
         model.setResultMsg("success");
         String ip=Common.getIpAddr(request);
         ulogs.insertGetLogs(loginUserId,loginGroupRoleId,loginRoleId,ip,"按条件查询广告统计查询对应列表总数");
+        return model;
+    }
+
+    //广告统计信息生成列表 并且下载
+    @GetMapping(value = "/downloadExcel")
+    public MessageModel downloadExcel(String advertId,String advertName,String tradeId,String blankId,String adCorpName,
+                                      String beginTime,String endTime,int pageNo,int pageSize,
+                                      String loginUserId,String loginGroupRoleId,String loginRoleId,HttpServletRequest request){
+        MessageModel model=new MessageModel();
+        Map<String,Object> map = new HashMap<String,Object>();
+        //把截止日期加长一天
+        if (endTime !=null && !endTime.equals("")) {
+            SimpleDateFormat f = new SimpleDateFormat("yyyy-MM-dd");
+            try {
+                Date d = new Date(f.parse(endTime).getTime() + 24 * 3600 * 1000);
+                endTime = f.format(d);
+            } catch (ParseException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        }
+        map.put("advertId",advertId);
+        map.put("advertName",advertName);
+        map.put("tradeId",tradeId);
+        map.put("blankId",blankId);
+        map.put("adCorpName",adCorpName);
+        map.put("beginTime",beginTime);
+        map.put("endTime",endTime);
+        map.put("pageBegin",(pageNo-1)*pageSize);
+        map.put("pageSize",pageSize);
+        List<AdvertPutIn> list=svr.getAdvertCountList(map);
+        String title[]=new String[]{"广告编号","广告名称","公司全称","所属品牌","行业","广告格式","广告时长","文件大小","审核时间","审核人","广告状态"};
+        MakeExcelCtrl mec=new MakeExcelCtrl();
+        mec.writeAdvertCountQueryExcel(list,title);
+        model.setData("excels/advert.xls");
+        model.setResultCode("1");
+        model.setResultMsg("success");
+        String ip=Common.getIpAddr(request);
+        ulogs.insertGetLogs(loginUserId,loginGroupRoleId,loginRoleId,ip,"广告统计信息下载excel");
+        return model;
+    }
+
+
+    //受众人群信息列表 导出表格
+    @PostMapping(value = "/audienceDownload")
+    public MessageModel audienceDownload(@RequestBody Map<String,Object> map,HttpServletRequest request){
+        MessageModel model=new MessageModel();
+        List<LinkedHashMap<String,Object>> list= (List<LinkedHashMap<String, Object>>) map.get("data");
+        String titile[]=new String[]{"设备编号","性别","年龄","籍贯","投放时间"};
+        MakeExcelCtrl mec=new MakeExcelCtrl();
+        mec.writeAudienceExcel(list,titile);
+        model.setData("excels/advertAudience.xls");
+        String loginUserId = map.get("loginUserId").toString();
+        String loginGroupRoleId = map.get("loginGroupRoleId").toString();
+        String loginRoleId = map.get("loginRoleId").toString();
+        String ip=Common.getIpAddr(request);
+        ulogs.insertGetLogs(loginUserId,loginGroupRoleId,loginRoleId,ip,"受众人群信息下载到excel");
+
         return model;
     }
 

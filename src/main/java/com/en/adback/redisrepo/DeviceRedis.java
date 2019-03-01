@@ -32,6 +32,7 @@ public class DeviceRedis {
     // 保存设备状态
     public void addDeviceState(DeviceCutAdvert deviceCutAdvert){
         redisTemplate.opsForValue().set(deviceCutAdvert.makeRedisKey(), deviceCutAdvert.getPlayDate());
+
     }
 
     // 读取所有设备状态(deviceId +playDate+screenId+screenCutId+advertId)
@@ -50,11 +51,16 @@ public class DeviceRedis {
         redisTemplate.opsForValue().getOperations().delete(keys);
     }
 
+    //
+
+
+
     // 删除广告
     public void deleteMsgByAdvertId(String advertId){
         Set<String> keys= redisTemplate.keys("*" +advertId);
         redisTemplate.opsForValue().getOperations().delete(keys);
     }
+
 
 
     // 查询存在轮播设备

@@ -17,10 +17,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -68,14 +65,23 @@ public class DevicePolicyServiceImp  implements IDevicePolicyService {
 
         // 区默认广告
          List<DefaultAdvert> defaultAdverts=defaultAdvertMapper.getDefaultAdvertList();
-         dcut01= defaultAdverts.stream().filter(o->o.getScreenCutId().equals("01")).findFirst().get().getDefaultFileName(); //开屏提示屏 默认广告
-         dcut02= defaultAdverts.stream().filter(o->o.getScreenCutId().equals("02")).findFirst().get().getDefaultFileName(); //开屏正屏 默认广告
+      //  dcut01= Optional.ofNullable(defaultAdverts).orElseGet(()-> new ArrayList<DefaultAdvert>()).stream().filter(o->o.getScreenCutId().equals("01")).findFirst().get().getDefaultFileName(); //弹屏提示屏 默认广告
+         dcut01= defaultAdverts.stream().filter(o->o.getScreenCutId().equals("01")).findFirst().get().getDefaultFileName(); //弹屏提示屏 默认广告
+         dcut02= defaultAdverts.stream().filter(o->o.getScreenCutId().equals("02")).findFirst().get().getDefaultFileName(); //弹屏正屏 默认广告
          dcut03= defaultAdverts.stream().filter(o->o.getScreenCutId().equals("03")).findFirst().get().getDefaultFileName(); //定投  商标提示屏
          dcut04= defaultAdverts.stream().filter(o->o.getScreenCutId().equals("04")).findFirst().get().getDefaultFileName(); //定投  定向投放正屏-正屏
          dcut05= defaultAdverts.stream().filter(o->o.getScreenCutId().equals("05")).findFirst().get().getDefaultFileName(); //定投  定向投放正屏-AB-A屏
          dcut06= defaultAdverts.stream().filter(o->o.getScreenCutId().equals("06")).findFirst().get().getDefaultFileName() ; //定投  定向投放正屏-AB-B屏
          dcut07= defaultAdverts.stream().filter(o->o.getScreenCutId().equals("07")).findFirst().get().getDefaultFileName(); //定投  定向投放正屏-BA-B屏
          dcut08= defaultAdverts.stream().filter(o->o.getScreenCutId().equals("08")).findFirst().get().getDefaultFileName(); //定投  定向投放正屏-BA-A屏
+
+
+
+
+
+
+
+
 
 
 
@@ -125,7 +131,7 @@ public class DevicePolicyServiceImp  implements IDevicePolicyService {
                       ),false,new ArrayList<Integer>()
               );
 
-              //获取开屏广告
+              //获取弹屏广告
               List<AdFile> filesup = new ArrayList<AdFile>();
               List<AdFile> filesdown = new ArrayList<AdFile>();
               List<AdFile> filesmid = new ArrayList<AdFile>();
@@ -167,7 +173,11 @@ public class DevicePolicyServiceImp  implements IDevicePolicyService {
               dayPolicyList.stream().filter(o-> o.getScreenPolicyId().equals("p002") && o.getScreenId().equals("c02") && o.getDevices().contains(device.getDeviceId())).forEach( v->{
                               List<AllDayPolicySub> sbList= dayPolicySubList.stream().filter(adps -> adps.getAdvertPolicysId().equals(v.getAdvertPolicysId())  ).collect(Collectors.toList());
 
-                              AllDayPolicySub upfile=sbList.stream().filter(dps -> dps.getPosition().equals("up")).collect(Collectors.toList()).size()==0 ?
+    //                  AllDayPolicySub upfile=Optional.ofNullable( sbList.stream().filter(dps -> dps.getPosition().equals("up")).collect(Collectors.toList()).get(0)).orElseGet(() ->
+    //                          new AllDayPolicySub("","",dcut03,0,"")
+    //                  );
+
+                       AllDayPolicySub upfile=sbList.stream().filter(dps -> dps.getPosition().equals("up")).collect(Collectors.toList()).size()==0 ?
                                       new AllDayPolicySub("","",dcut03,0,"") : sbList.stream().filter(dps -> dps.getPosition().equals("up")).collect(Collectors.toList()).get(0);
 
                               AllDayPolicySub downfile=sbList.stream().filter(dps -> dps.getPosition().equals("down")).collect(Collectors.toList()).size()==0 ?
@@ -441,7 +451,7 @@ public class DevicePolicyServiceImp  implements IDevicePolicyService {
     private String mediaDownLoadFiles( DownDayPolicy downDayPolicy){
 
         List<String> mediaFiles=new ArrayList<String>(); // 该设备应下载的文件
-        // 1.开屏
+        // 1.弹屏
         Stream<AdFile> tmp =   downDayPolicy.getPolicy().getOpenScreen().getOpenTip().stream();
         tmp=Stream.concat(tmp,downDayPolicy.getPolicy().getOpenScreen().getOpenScreen().stream());
 

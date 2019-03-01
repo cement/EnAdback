@@ -19,6 +19,7 @@ import java.util.Map;
 
 @Api(value="投放点位统计",tags={"投放点位统计webapi接口"})
 @RestController
+@CrossOrigin
 @RequestMapping(value = "/api/putinpointcount", method = {RequestMethod.GET, RequestMethod.POST}, produces = "application/json;charset=UTF-8")
 public class PutinPointCountCtrl {
 
@@ -37,7 +38,7 @@ public class PutinPointCountCtrl {
     @GetMapping(value = "/point")
     public MessageModel advertList(String year,String loginUserId,
                                    String loginGroupRoleId,String loginRoleId,HttpServletRequest request)
-    {
+        {
         MessageModel model=new MessageModel();
         Map<String,Object> map=new HashMap<String, Object>();
         map.put("year",year);
@@ -96,7 +97,7 @@ public class PutinPointCountCtrl {
         Map<String,Object> map=new HashMap<String, Object>();
         map.put("year",year);
         List<Map<String,Object>> OrientationOnTheArray = svr.getOrientationOnTheArray(map);// 获取 广告投放总数
-        List<Map<String,Object>> TheTailArray = svr.getTheTailArray(map); // 获取 开屏广告 统计
+        List<Map<String,Object>> TheTailArray = svr.getTheTailArray(map); //
         map.put("OrientationOnTheArray",OrientationOnTheArray);
         map.put("TheTailArray",TheTailArray);
         model.setData(map);

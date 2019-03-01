@@ -63,16 +63,15 @@ public class PutinPointCountSerivceImp implements PutinPointCountSerivce {
             }
             NonExistent.put("POLICYNAME",str + "--" +str1);
             NonExistent.put("STRATEGYCOUNT",list.get(i).get("STRATEGYCOUNT"));
-            list3.add(NonExistent);
+            String policyName = list.get(i).get("POLICYNAME").toString();
+            String policyname = NonExistent.get("POLICYNAME").toString();
+            if(policyname.indexOf(policyName.substring(0,1))!= -1){
+                list3.add(NonExistent);
+            }
         }
         List<String> list1 = new ArrayList<String>();
-        for (Map<String,Object> map1: list) {
-            String str = map1.get("SCREENNAME").toString();
-            String str2 = map1.get("SCREENCUTNAME").toString();
-            if(str2.contains("-")){
-                str2 = str2.substring(str2.indexOf("-")+1,str2.length());
-            }
-            list1.add(str + "--" + str2);
+        for (Map<String,Object> map1: list3) {
+            list1.add(map1.get("POLICYNAME").toString());
         }
         List<String> list2 = new ArrayList<String>();
         for(int i=0;i<TScreenCount.size();i++){
@@ -132,16 +131,16 @@ public class PutinPointCountSerivceImp implements PutinPointCountSerivce {
             }
             NonExistent.put("POLICYNAME",str + "--" +str1);
             NonExistent.put("STRATEGYCOUNT",list.get(i).get("STRATEGYCOUNT"));
-            list3.add(NonExistent);
+            String policyName = list.get(i).get("POLICYNAME").toString();
+            String policyname = NonExistent.get("POLICYNAME").toString();
+
+            if(policyname.indexOf(policyName.substring(0,1))!= -1){
+                list3.add(NonExistent);
+            }
         }
         List<String> list1 = new ArrayList<String>();
-        for (Map<String,Object> map1: list) {
-            String str = map1.get("SCREENNAME").toString();
-            String str2 = map1.get("SCREENCUTNAME").toString();
-            if(str2.contains("-")){
-                str2 = str2.substring(str2.indexOf("-")+1,str2.length());
-            }
-            list1.add(str + "--" + str2);
+        for (Map<String,Object> map1: list3) {
+            list1.add(map1.get("POLICYNAME").toString());
         }
         List<String> list2 = new ArrayList<String>();
         for(int i=0;i<TScreenCount.size();i++){
@@ -192,16 +191,17 @@ public class PutinPointCountSerivceImp implements PutinPointCountSerivce {
             NonExistent.put("OCTOBER",list.get(i).get("OCTOBER"));
             NonExistent.put("NOVEMBER",list.get(i).get("NOVEMBER"));
             NonExistent.put("DECEMBER",list.get(i).get("DECEMBER"));
-            list3.add(NonExistent);
+
+            String policyName = list.get(i).get("POLICYNAME").toString();
+            String policyname = NonExistent.get("POLICYNAME").toString();
+
+            if(policyname.indexOf(policyName.substring(0,1))!= -1){
+                list3.add(NonExistent);
+            }
         }
         List<String> list1 = new ArrayList<String>();
-        for (Map<String,Object> map1: list) {
-            String str = map1.get("SCREENNAME").toString();
-            String str2 = map1.get("SCREENCUTNAME").toString();
-            if(str2.contains("-")){
-                str2 = str2.substring(str2.indexOf("-")+1,str2.length());
-            }
-            list1.add(str + "--" + str2);
+        for (Map<String,Object> map1: list3) {
+            list1.add(map1.get("POLICYNAME").toString());
         }
         List<String> list2 = new ArrayList<String>();
         for(int i=0;i<TScreenCount.size();i++){

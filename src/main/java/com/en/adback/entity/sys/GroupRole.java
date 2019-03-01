@@ -14,6 +14,7 @@ public class GroupRole extends UserAction {
     private String memo ; // 备注
     private String menus  ;// 可操作的菜单项 逗号分割 菜单id
     private String state;
+    private boolean appFunction;//是否拥有公众号权限
 
     public GroupRole() {
     }

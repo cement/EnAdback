@@ -17,7 +17,7 @@ public interface GroupRoleMapper {
 
     //查询
     @Select("<script>" +
-            "select groupRoleId,groupRoleName,memo,menus from ad.t_grouprole" +
+            "select groupRoleId,groupRoleName,memo,menus,appFunction from ad.t_grouprole" +
             " limit ${pageSize} offset ${pageBegin} " +
             "</script>")
     List<GroupRole> getGroupRoleList(Map<String,Object> re);
@@ -29,8 +29,8 @@ public interface GroupRoleMapper {
 
     //新增、修改
     @Insert("<script>" +
-            "upsert into ad.t_grouprole(groupRoleId,groupRoleName,memo,menus) " +
-            " values('${groupRoleId}','${groupRoleName}','${memo}','${menus}') " +
+            "upsert into ad.t_grouprole(groupRoleId,groupRoleName,memo,menus,appFunction) " +
+            " values('${groupRoleId}','${groupRoleName}','${memo}','${menus}',${appFunction}) " +
             "</script>")
     int upsertGroupRole(GroupRole groupRole);
 

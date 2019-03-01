@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -19,6 +20,7 @@ import java.util.Map;
  * 用户
  */
 @RestController
+@CrossOrigin
 @RequestMapping(value = "/user", method = {RequestMethod.GET,RequestMethod.POST}, produces = "application/json;charset=UTF-8")
 public class UserCtrl {
     @Autowired
@@ -196,6 +198,77 @@ public class UserCtrl {
         ul.insertGetLogs(loginUserId,loginGroupRoleId,loginRoleId,ip,"查询未指定组管理员的角色组");
         return m;
     }
+
+    //导出用户信息Excel
+    @GetMapping(value = "/getUserExcel")
+    public MessageModel getUserExcel(String loginAdmin, String userId, String userName, String tel, String groupRoleId, String roleId,int pageNo,int pageSize,String loginUserId,
+                                     String loginGroupRoleId,String loginRoleId,HttpServletRequest request){
+        MessageModel m = new MessageModel();
+        Map<String,Object> re = new HashMap<>();
+        re.put("userId",userId);
+        re.put("userName",userName);
+        re.put("tel",tel);
+        re.put("groupRoleId",groupRoleId);
+        re.put("roleId",roleId);
+        List<User> list = new ArrayList<User>();
+        UserMakeExcelCtrl umsc = new UserMakeExcelCtrl();
+        if("admin".equals(loginAdmin)){//当前操作用户为admin
+            list = svr.getUserExcelByAdmin(re);
+
+            try {
+                umsc.writeAllUserExcel(list);
+                m.setData(1);
+            } catch (IOException e) {
+                m.setData(2);
+                e.printStackTrace();
+            }
+        }else{//当前操作用户为组管理员
+            list = svr.getUserExcelByGroupRoleId(re);
+            try {
+                umsc.writeGroupUserExcel(list);
+                m.setData(1);
+            } catch (IOException e) {
+                m.setData(2);
+                e.printStackTrace();
+            }
+        }
+        re.clear();
+        m.setResultCode("1");
+        String ip=Common.getIpAddr(request);
+        ul.insertGetLogs(loginUserId,loginGroupRoleId,loginRoleId,ip,"按条件查询用户导出excel");
+        return m;
+    }
+
+
+    @GetMapping(value = "/bindWx")
+    public MessageModel bindWx(String userId,String wxOpenId,String loginUserId,String loginGroupRoleId,String loginRoleId,HttpServletRequest request){
+        MessageModel m = new MessageModel();
+        Map<String,String> re  = new HashMap<>();
+        re.put("userId",userId);
+        re.put("wxOpenId",wxOpenId);
+        int i = svr.bindWx(re);
+        m.setData(i);
+        String ip=Common.getIpAddr(request);
+        ul.insertGetLogs(loginUserId,loginGroupRoleId,loginRoleId,ip,"公众号用户绑定微信");
+        return m;
+    }
+
+
+    @PostMapping(value = "/appUserLogin")
+    public MessageModel appUserLogin(@RequestBody User user, HttpServletRequest request){
+        user.setPassWord(MD5Util.md5Password(user.getPassWord()));
+        List<User> list= svr.appUserLogin(user);
+        Map<String,Object> result = new HashMap<String,Object>();
+        MessageModel model=new MessageModel();
+        result.put("list",list);
+        model.setData(result);
+        model.setResultCode(list.size()>0?"1":"2");
+        model.setResultMsg("success");
+        String ip= Common.getIpAddr(request);
+        ul.insertPostLogs(user,ip,"用户登录");
+        return model;
+    }
+
 
 
 }

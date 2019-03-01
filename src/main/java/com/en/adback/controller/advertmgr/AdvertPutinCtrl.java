@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -24,6 +25,7 @@ import java.util.Map;
 
 @Api(value="广告发布",tags={"广告发布webapi接口"})
 @RestController
+@CrossOrigin
 @RequestMapping(value = "/api/advertPutin", method = {RequestMethod.GET,RequestMethod.POST}, produces = "application/json;charset=UTF-8")
 public class AdvertPutinCtrl {
     @Autowired
@@ -172,6 +174,63 @@ public class AdvertPutinCtrl {
         }
         String ip= Common.getIpAddr(request);
         ulogs.insertGetLogs(loginUserId,loginGroupRoleId,loginRoleId,ip,"广告下发");
+        return m;
+    }
+
+
+    @ApiOperation( value = "广告发布按条件查询",notes = "广告按条件查询" )
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "advertId", value = "广告编码", required = false, dataType = "String", paramType = "query"),
+            @ApiImplicitParam(name = "advertName", value = "广告名称", required = false, dataType = "String", paramType = "query"),
+            @ApiImplicitParam(name = "adCorpName", value = "广告公司名称", required = false, dataType = "String", paramType = "query"),
+            @ApiImplicitParam(name = "blankId", value = "品牌id", required = false, dataType = "String", paramType = "query"),
+            @ApiImplicitParam(name = "nowState", value = "状态id", required = false, dataType = "String", paramType = "query"),
+            @ApiImplicitParam(name = "checkTimeBegin", value = "审核日期起", required = false, dataType = "String", paramType = "query"),
+            @ApiImplicitParam(name = "checkTimeEnd", value = "审核日期止", required = false, dataType = "String", paramType = "query"),
+    })
+    @ApiResponses({ @ApiResponse(code = 1, message = "操作成功"),
+            @ApiResponse(code = 2, message = "服务器内部异常"),
+            @ApiResponse(code =3, message = "权限不足") })
+    @GetMapping(value = "/getAdvertPutinExcel")
+    public MessageModel getAdvertPutinExcel(String advertId,String advertName, String adCorpName, String blankId ,String tradeId,int nowState,
+                                        String checkTimeBegin, String checkTimeEnd,String loginUserId,
+                                        String loginGroupRoleId,String loginRoleId,HttpServletRequest request)
+    {
+        MessageModel m= new MessageModel();
+        Map<String,Object> re = new HashMap<String,Object>();
+
+        //把截止日期加长一天
+        if (checkTimeEnd !=null && !checkTimeEnd.equals("")) {
+            SimpleDateFormat f = new SimpleDateFormat("yyyy-MM-dd");
+            try {
+                Date d = new Date(f.parse(checkTimeEnd).getTime() + 24 * 3600 * 1000);
+                checkTimeEnd = f.format(d);
+            } catch (ParseException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        }
+        re.put("checkTimeBegin",checkTimeBegin);
+        re.put("checkTimeEnd",checkTimeEnd);
+        re.put("advertId",advertId);
+        re.put("advertName",advertName);
+        re.put("adCorpName",adCorpName);
+        re.put("blankId",blankId);
+        re.put("tradeId",tradeId);
+        re.put("nowState",nowState);
+        List<AdvertPutIn> list=svr.getAdvertPutInExcel(re);
+        AdvertCheckExcelCtrl acec = new AdvertCheckExcelCtrl();
+        try {
+            acec.writeAdvertPutinExcel(list);
+            m.setData(1);
+        } catch (IOException e) {
+            m.setData(2);
+            e.printStackTrace();
+        }
+        m.setResultCode(list.size()>0?"1":"2");
+        m.setResultMsg("success");
+        String ip= Common.getIpAddr(request);
+        ulogs.insertGetLogs(loginUserId,loginGroupRoleId,loginRoleId,ip,"广告发布查询Excel导出");
         return m;
     }
 
