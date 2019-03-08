@@ -241,7 +241,7 @@ public class AdorderCtrl {
     }
 
 
-    //更新订单
+    //更新订单 (修改)
     @ApiOperation( value = "更新订单",notes = "更新订单api接口")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "orderbill", value = "订单类", required = false, dataType = "com.en.adback.entity.Adorder.OrderBill", paramType = "body"),

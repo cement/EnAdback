@@ -239,8 +239,8 @@ public interface AdorderPolicyMapper {
             " upsert into ad.t_advert_order_policys" +
             " (orderId,adCorpId,tradeId,blankId,maker,makeTime,advertPolicysId,screenPolicyId,screenId,playDates,playTimeBegin,playTimeEnd,devices,playAlone,putInKind,systems,effect,effecter,effectTime,payMoney,orderMemo) " +
             "  values " +
-            " (#{orderId} ,#{adCorpId},#{tradeId},#{blankId},#{maker},CONVERT_TZ(CURRENT_DATE(), 'UTC', 'Asia/Shanghai'),#{advertPolicysId},#{screenPolicyId},#{screenId}," +
-            " #{playDates},#{playTimeBegin},#{playTimeEnd},#{devices},#{playAlone},#{putInKind},#{systems},1,'',null,#{payMoney},#{orderMemo})" +
+            " ('${orderId}','${adCorpId}','${tradeId}','${blankId}','${maker}',CONVERT_TZ(CURRENT_DATE(), 'UTC', 'Asia/Shanghai'),'${advertPolicysId}','${screenPolicyId}','${screenId}'," +
+            " '${playDates}','${playTimeBegin}','${playTimeEnd}','${devices}',${playAlone},${putInKind},'${systems}',1,'',null,${payMoney},'${orderMemo}')" +
             "</script>")
    public int saveMainOrderBill(OrderBill orderBill);
 
@@ -253,8 +253,8 @@ public interface AdorderPolicyMapper {
             " upsert into ad.t_advert_order_policys" +
             " (orderId,adCorpId,tradeId,blankId,maker,makeTime,advertPolicysId,screenPolicyId,screenId,playDates,playTimeBegin,playTimeEnd,devices,playAlone,putInKind,systems,effect,effecter,effectTime,payMoney,orderMemo,orderFirmtime,affirmer) " +
             "  values " +
-            " (#{orderId} ,#{adCorpId},#{tradeId},#{blankId},#{maker},CONVERT_TZ(CURRENT_DATE(), 'UTC', 'Asia/Shanghai'),#{advertPolicysId},#{screenPolicyId},#{screenId}," +
-            " #{playDates},#{playTimeBegin},#{playTimeEnd},#{devices},#{playAlone},#{putInKind},#{systems},1,'',null,#{payMoney},#{orderMemo},CONVERT_TZ(CURRENT_DATE(), 'UTC', 'Asia/Shanghai'),#{affirmer})" +
+            " ('${orderId}' ,'${adCorpId}','${tradeId}','${blankId}','${maker}',CONVERT_TZ(CURRENT_DATE(), 'UTC', 'Asia/Shanghai'),'${advertPolicysId}','${screenPolicyId}','${screenId}'," +
+            " '${playDates}','${playTimeBegin}','${playTimeEnd}','${devices}',${playAlone},${putInKind},'${systems}',1,'',null,${payMoney},'${orderMemo}',CONVERT_TZ(CURRENT_DATE(), 'UTC', 'Asia/Shanghai'),'${affirmer}')" +
             "</script>")
     public int confirmOrderBill(OrderBill orderBill);
     /**
@@ -264,7 +264,7 @@ public interface AdorderPolicyMapper {
      */
 
     @Insert("upsert into ad.t_advert_sub_order_policys(id, orderId ,screenCutId,advertId) " +
-            "values(next value for ad.t_advert_sub_order_policys_seq, #{orderId} ,#{screenCutId},#{advertId})")
+            "values(next value for ad.t_advert_sub_order_policys_seq, '${orderId}','${screenCutId}','${advertId}')")
     public int saveSubOrderBill(SubOrderBill subOrderBill);
 
     /**
@@ -274,7 +274,7 @@ public interface AdorderPolicyMapper {
      */
 
     @Insert("upsert into ad.t_advert_sub_order_policys(id, orderId ,screenCutId,advertId) " +
-            "values(#{id}, #{orderId} ,#{screenCutId},#{advertId})")
+            "values(${id}, '${orderId}','${screenCutId}','${advertId}')")
     public int updateSubOrderBill(SubOrderBill subOrderBill);
 
 
@@ -300,7 +300,7 @@ public interface AdorderPolicyMapper {
 
 
 
-    @Delete("delete from ad.T_ADVERT_SUB_ORDER_POLICYS where orderId = #{orderId}")
+    @Delete("delete from ad.T_ADVERT_SUB_ORDER_POLICYS where orderId = '${orderId}'")
     public int deleteSubOrder(@Param("orderId") String orderId);
 
 
@@ -380,7 +380,7 @@ public interface AdorderPolicyMapper {
     public  List<OrderBill> getOrder(Map<String,Object> params);
 
 
-    @Select("select * from ad.t_advert_sub_order_policys where orderId = #{orderId}")
+    @Select("select * from ad.t_advert_sub_order_policys where orderId = '${orderId}'")
     public List<SubOrderBill> getSubOrder(@Param("orderId") String orderId);
 
 
@@ -436,4 +436,9 @@ public interface AdorderPolicyMapper {
                     " limit ${pageSize} offset ${pageBegin}" +
                     " </script>")
     public List<OrderBill> getOrderList(Map<String, Object> map);
+
+
+    //根据orderId查询所有设备
+    @Select("select orderId,devices from ad.t_advert_order_policys where orderId=#{orderId}")
+    public String getDevidesByOrderId(@Param("orderId") String orderId);
 }

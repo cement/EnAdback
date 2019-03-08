@@ -101,7 +101,7 @@ public class AdreplaceServiceImpl {
 
     /*市州服务器上传或下载结果报告*/
     public void asyncCallback(String callbackJson){
-        //TODO
+
         log.info("callback 收到的信息：{}",callbackJson);
     }
 }

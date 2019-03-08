@@ -13,11 +13,15 @@ import com.en.adback.redisrepo.DeviceRedis;
 import com.en.adback.redisrepo.entity.DeviceCutAdvert;
 import com.en.adback.service.Adorder.IAdorderService;
 import com.en.adback.service.advertmgr.IAdvertPolicyService;
+import com.en.adback.service.deviceManager.IPolicySendDeviceService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.concurrent.ExecutorService;
 
 @Slf4j
 @Service
@@ -34,6 +38,13 @@ public class AdorderServiceImpl implements IAdorderService {
 
     @Autowired
     private AdvertPolicyMapper advertMapper;
+
+    @Autowired
+    private IPolicySendDeviceService deviceService;
+
+    @Autowired
+    @Qualifier("ThreadExecutor")
+    private ExecutorService threadExecutor;
 
     // 赋值选中的屏幕策略到策略集合(从数据库读取)
     @Override
@@ -140,6 +151,11 @@ public class AdorderServiceImpl implements IAdorderService {
                     }
             );
         });
+
+        // TODO 插入已分配策略设备记录表(标识最大orderId)
+        threadExecutor.execute(()->{
+           deviceService.upsertWithOrderIdIncr(orderBill.getDevices(),orderBill.getOrderId());
+        });
         return true;
     }
 
@@ -187,6 +203,17 @@ public class AdorderServiceImpl implements IAdorderService {
                     }
             );
         });
+      /*  TODO 更新 已分配策略设备记录表 (orderId) */
+        //第一步  根据id查出原来的 devices
+        //第二步  根据查询出的devicesId 更新记录表count-1
+        //第三步  根据当前订单类,根据orderId 更新记录表 count+1
+
+        threadExecutor.execute(()->{
+                String devideIds = adorderMapper.getDevidesByOrderId(orderBill.getOrderId());
+                deviceService.upsertWithOrderIdDecr(devideIds,orderBill.getOrderId());
+                deviceService.upsertWithOrderIdIncr(orderBill.getDevices(),orderBill.getOrderId());
+            });
+
 
 
         return true;
@@ -251,7 +278,10 @@ public class AdorderServiceImpl implements IAdorderService {
         });
 
 
-
+        //TODO 插入已分配策略设备记录表(标识AdvertPolicysId)
+        threadExecutor.execute(()->{
+           deviceService.upsertWithAdvertPolicyId(orderBill.getDevices(),orderBill.getAdvertPolicysId());
+        });
         return true;
     }
 
@@ -268,6 +298,16 @@ public class AdorderServiceImpl implements IAdorderService {
         //删除redis中的记录
         subOrderBills.stream().forEach(sub->{
             deviceRedis.deleteMsgByAdvertId(sub.getAdvertId());
+        });
+
+
+        /*TODO  更新 已分配策略设备记录表 (orderId) */
+        //第一步  根据id查出原来的 devices
+        //第二步  根据查询出的devicesId 更新记录表count-1
+
+        threadExecutor.execute(()->{
+           String devideIds = adorderMapper.getDevidesByOrderId(String.valueOf(params.get("orderId")));
+           deviceService.upsertWithOrderIdDecr(devideIds,String.valueOf(params.get("orderId")));
         });
 
         return true;

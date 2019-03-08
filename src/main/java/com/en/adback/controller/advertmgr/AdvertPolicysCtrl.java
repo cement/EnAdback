@@ -11,14 +11,20 @@ import com.en.adback.entity.calpolicy.screencut.Screen;
 import com.en.adback.redisrepo.entity.DeviceCutAdvert;
 import com.en.adback.service.advertmgr.IAdvertPolicyService;
 import com.en.adback.service.advertmgr.IAdvertService;
+import com.en.adback.service.deviceManager.IPolicySendDeviceService;
+import com.en.adback.serviceimp.DeviceCalServiceImpl;
 import io.swagger.annotations.Api;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
 
 @Api(value="广告策略",tags={"广告策略webapi接口"})
 @RestController
@@ -33,6 +39,11 @@ public class AdvertPolicysCtrl {
     private AdvertPolicysLogs logs;
     @Autowired
     private UserLogs ulogs;
+    @Autowired
+    private IPolicySendDeviceService deviceService;
+    @Autowired
+    @Qualifier("ThreadExecutor")
+    private ExecutorService threadExecutor;
 
     // 获取所有屏幕策略
     @GetMapping(value="/allScreenPolicys")
@@ -107,6 +118,12 @@ public class AdvertPolicysCtrl {
         }
         svr.insertAdvertPolicys(advertPolicys,advertPolicys.getLoginUserId());
         svr.saveAdvertPolicysRedis(advertPolicys);
+
+        //TODO  插入已分配策略设备记录表(AdvertPolicysId)
+        threadExecutor.execute(()->{
+            deviceService.upsertWithAdvertPolicyId(advertPolicys.getDevices(),advertPolicys.getAdvertPolicysId());
+        });
+
         m.setResultCode("1");
         m.setResultMsg("ok");
         String ip= Common.getIpAddr(request);
