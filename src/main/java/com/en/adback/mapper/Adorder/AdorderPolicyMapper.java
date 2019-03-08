@@ -438,7 +438,5 @@ public interface AdorderPolicyMapper {
     public List<OrderBill> getOrderList(Map<String, Object> map);
 
 
-    //根据orderId查询所有设备
-    @Select("select orderId,devices from ad.t_advert_order_policys where orderId=#{orderId}")
-    public String getDevidesByOrderId(@Param("orderId") String orderId);
+
 }

@@ -17,6 +17,7 @@ import io.swagger.annotations.Api;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.core.task.TaskExecutor;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
@@ -116,13 +117,27 @@ public class AdvertPolicysCtrl {
           );
           nowEdit="edit";
         }
+
+        //TODO  插入已分配策略设备记录表(AdvertPolicysId)
+        //第一步：查询广告策略表原 advertPolicyId的设备
+        //第二步：如果是修改，直接第四步
+        //第三步:  分发策略记录表原 设备count-1
+        //第四步：分发策略记录表 当前选定的设备count+1
+        /*注 此处查询应在保存主表之前*/
+        String oldDevides = deviceService.getDevidesByAdvertPolicyId(advertPolicys.getAdvertPolicysId());
+        threadExecutor.execute(()->{
+            if (StringUtils.isEmpty(oldDevides)){
+                deviceService.upsertWithAdvertPolicyIdIncr(advertPolicys.getDevices(),advertPolicys.getAdvertPolicysId());
+            }else{
+                deviceService.upsertWithAdvertPolicyIdDecr(oldDevides,advertPolicys.getAdvertPolicysId());
+                deviceService.upsertWithAdvertPolicyIdIncr(advertPolicys.getDevices(),advertPolicys.getAdvertPolicysId());
+            }
+        });
+
+
         svr.insertAdvertPolicys(advertPolicys,advertPolicys.getLoginUserId());
         svr.saveAdvertPolicysRedis(advertPolicys);
 
-        //TODO  插入已分配策略设备记录表(AdvertPolicysId)
-        threadExecutor.execute(()->{
-            deviceService.upsertWithAdvertPolicyId(advertPolicys.getDevices(),advertPolicys.getAdvertPolicysId());
-        });
 
         m.setResultCode("1");
         m.setResultMsg("ok");

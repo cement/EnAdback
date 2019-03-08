@@ -4,9 +4,6 @@ import com.en.adback.service.deviceManager.IPolicySendDeviceService;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
-import org.springframework.stereotype.Component;
-
-import java.util.Arrays;
 
 @Data
 @Slf4j

@@ -3,6 +3,7 @@ package com.en.adback.serviceimp.deviceMansger;
 import com.en.adback.mapper.deviceManager.IPolicySendDeviceMapper;
 import com.en.adback.service.deviceManager.IPolicySendDeviceService;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.ibatis.annotations.Param;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.annotation.Async;
@@ -67,7 +68,7 @@ public class PolicySendDeviceServiceImpl implements IPolicySendDeviceService {
             String devices = map.get("devices");
 
             Arrays.stream(devices.split(",")).forEach(deviceId->{
-                int count = haveSendMapper.upsertWithAdvertPolicyId(deviceId, advertPolicysId);
+                int count = haveSendMapper.upsertWithAdvertPolicyIdIncr(deviceId, advertPolicysId);
                 atomic.getAndAdd(count);
             });
         });
@@ -98,16 +99,40 @@ public class PolicySendDeviceServiceImpl implements IPolicySendDeviceService {
 
     }
 
-
     @Override
-    public int  upsertWithAdvertPolicyId(String deviceIds, String advertPolicysId){
+    public int upsertWithAdvertPolicyIdDecr(String deviceIds, String advertPolicysId) {
         AtomicInteger atomic = new AtomicInteger(0);
         Arrays.stream(deviceIds.split(",")).forEach(deviceId->{
-            int count = haveSendMapper.upsertWithAdvertPolicyId(deviceId, advertPolicysId);
+            int count = haveSendMapper.upsertWithAdvertPolicyIdDecr(deviceId, advertPolicysId);
             atomic.getAndAdd(count);
         });
         return atomic.get();
     }
+
+    @Override
+    public int upsertWithAdvertPolicyIdIncr(String deviceIds, String advertPolicysId) {
+        AtomicInteger atomic = new AtomicInteger(0);
+        Arrays.stream(deviceIds.split(",")).forEach(deviceId->{
+            int count = haveSendMapper.upsertWithAdvertPolicyIdIncr(deviceId, advertPolicysId);
+            atomic.getAndAdd(count);
+        });
+        return atomic.get();
+    }
+
+
+
+
+    @Override
+    public String getDevidesByOrderId(String orderId){
+        return haveSendMapper.getDevidesByOrderId(orderId);
+    }
+
+
+    @Override
+    public String getDevidesByAdvertPolicyId(String advertPolicyId){
+        return haveSendMapper.getDevidesByAdvertPolicyId(advertPolicyId);
+    }
+
 
 
 }

@@ -163,6 +163,15 @@ public class AdorderServiceImpl implements IAdorderService {
     @Override
     public boolean updateOrder(OrderBill orderBill) {
 
+        /*  TODO 更新 已分配策略设备记录表 (orderId) */
+        //第一步  根据id查出原来的 devices
+        //第二步  根据查询出的devicesId 更新记录表count-1
+        //第三步  根据当前订单类,根据orderId 更新记录表 count+1
+        String devideIds = deviceService.getDevidesByOrderId(orderBill.getOrderId());
+        threadExecutor.execute(()->{
+            deviceService.upsertWithOrderIdDecr(devideIds,orderBill.getOrderId());
+            deviceService.upsertWithOrderIdIncr(orderBill.getDevices(),orderBill.getOrderId());
+        });
 
         //根据id查询出原来的广告Id,用于删除Redis
         HashMap<String, Object> paramsMap = new HashMap<>();
@@ -203,18 +212,6 @@ public class AdorderServiceImpl implements IAdorderService {
                     }
             );
         });
-      /*  TODO 更新 已分配策略设备记录表 (orderId) */
-        //第一步  根据id查出原来的 devices
-        //第二步  根据查询出的devicesId 更新记录表count-1
-        //第三步  根据当前订单类,根据orderId 更新记录表 count+1
-
-        threadExecutor.execute(()->{
-                String devideIds = adorderMapper.getDevidesByOrderId(orderBill.getOrderId());
-                deviceService.upsertWithOrderIdDecr(devideIds,orderBill.getOrderId());
-                deviceService.upsertWithOrderIdIncr(orderBill.getDevices(),orderBill.getOrderId());
-            });
-
-
 
         return true;
     }
@@ -278,9 +275,9 @@ public class AdorderServiceImpl implements IAdorderService {
         });
 
 
-        //TODO 插入已分配策略设备记录表(标识AdvertPolicysId)
+        //TODO 插入已分配策略设备记录表(标识AdvertPolicysId count--)
         threadExecutor.execute(()->{
-           deviceService.upsertWithAdvertPolicyId(orderBill.getDevices(),orderBill.getAdvertPolicysId());
+           deviceService.upsertWithAdvertPolicyIdIncr(orderBill.getDevices(),orderBill.getAdvertPolicysId());
         });
         return true;
     }
@@ -306,7 +303,7 @@ public class AdorderServiceImpl implements IAdorderService {
         //第二步  根据查询出的devicesId 更新记录表count-1
 
         threadExecutor.execute(()->{
-           String devideIds = adorderMapper.getDevidesByOrderId(String.valueOf(params.get("orderId")));
+           String devideIds = deviceService.getDevidesByOrderId(String.valueOf(params.get("orderId")));
            deviceService.upsertWithOrderIdDecr(devideIds,String.valueOf(params.get("orderId")));
         });
 

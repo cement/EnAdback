@@ -32,19 +32,27 @@ public interface IPolicySendDeviceMapper {
             "</script>")
     public  int upsertWithOrderIdDecr(@Param("deviceId") String deviceId,@Param("orderId")String orderId);
 
-    //插入已发策略表 (广告策略)
+    //插入已发策略表 (广告策略++)
     @Insert("<script>" +
             " upsert into ad.t_haveSendPolicy_device(deviceId, count,advertPolicysId) " +
             " values " +
             " (#{deviceId},1,#{advertPolicysId}) on duplicate key update count = count+1,advertPolicysId=#{advertPolicysId} " +
             "</script>")
-    public  int upsertWithAdvertPolicyId(@Param("deviceId") String deviceId,@Param("advertPolicysId") String advertPolicysId);
+    public  int upsertWithAdvertPolicyIdIncr(@Param("deviceId") String deviceId,@Param("advertPolicysId") String advertPolicysId);
+    //插入已发策略表 (广告策略--)
+    @Insert("<script>" +
+            " upsert into ad.t_haveSendPolicy_device(deviceId, count,advertPolicysId) " +
+            " values " +
+            " (#{deviceId},1,#{advertPolicysId}) on duplicate key update count = count-1,advertPolicysId=#{advertPolicysId} " +
+            "</script>")
+    public  int upsertWithAdvertPolicyIdDecr(@Param("deviceId") String deviceId,@Param("advertPolicysId") String advertPolicysId);
+
 
     //查询订单表 最新插入的数据(以orderId为比较条件)
     @Select(
             "<script>" +
             " select orderId as \"orderId\",devices as \"devices\" from ad.t_advert_order_policys as a " +
-            "  where a.orderId > (select  case when  max(orderId) is null then '0' else max(orderId) end as maxOrderId  from ad.t_havesendpolicy_device)" +
+            "  where a.effect = 1 and a.orderId > (select  case when  max(orderId) is null then '0' else max(orderId) end as maxOrderId  from ad.t_havesendpolicy_device)" +
             "  order by orderId asc  " +
             "</script>")
     public  List<Map<String,String>> selectNewerOrderPolicyDevices();
@@ -57,4 +65,12 @@ public interface IPolicySendDeviceMapper {
             " order by advertPolicysId asc"+
             "</script>")
     public  List<Map<String,String>> selectNewerAdvertPolicyDevices();
+
+
+    //根据orderId查询所有设备
+    @Select("select devices from ad.t_advert_order_policys where orderId=#{orderId}")
+    public String getDevidesByOrderId(@Param("orderId") String orderId);
+
+    @Select("select devices from ad.t_advert_policys where advertPolicysId=#{advertPolicyId}")
+    public String getDevidesByAdvertPolicyId(@Param("advertPolicyId") String advertPolicyId);
 }

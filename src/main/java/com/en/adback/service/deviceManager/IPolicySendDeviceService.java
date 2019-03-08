@@ -20,9 +20,16 @@ public interface IPolicySendDeviceService {
 
 
 
-    public int upsertWithOrderIdDecr(String deviceId, String orderId);
+    public int upsertWithOrderIdDecr(String deviceIds, String orderId);
 
 
 
-    public int  upsertWithAdvertPolicyId(String deviceId, String advertPolicysId);
+
+    public int upsertWithAdvertPolicyIdDecr(String deviceIds, String advertPolicysId);
+
+    public int upsertWithAdvertPolicyIdIncr(String deviceIds, String advertPolicysId);
+
+    public  String getDevidesByOrderId(String orderId);
+
+    public String getDevidesByAdvertPolicyId(String advertPolicyId);
 }
