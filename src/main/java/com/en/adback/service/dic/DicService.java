@@ -1,5 +1,6 @@
 package com.en.adback.service.dic;
 
+import com.en.adback.entity.devicemgr.Device;
 import com.en.adback.entity.dic.*;
 import com.en.adback.entity.sys.GroupRole;
 import com.en.adback.entity.sys.Role;
@@ -34,5 +35,8 @@ public interface DicService {
     List<GroupRole> getGroupRoleList();
 
     List<Role> getRoleList(Map<String,Object> re);
+
+    //查询所有已发布策略的设备编号
+    List<Device> deviceIdList();
 
 }

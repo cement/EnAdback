@@ -1,5 +1,6 @@
 package com.en.adback.serviceimp.dic;
 
+import com.en.adback.entity.devicemgr.Device;
 import com.en.adback.entity.dic.*;
 import com.en.adback.entity.sys.GroupRole;
 import com.en.adback.entity.sys.Role;
@@ -75,5 +76,10 @@ public class DicServiceImp implements DicService {
     @Override
     public List<Role> getRoleList(Map<String, Object> re) {
         return mapper.getRoleList(re);
+    }
+
+    @Override
+    public List<Device> deviceIdList() {
+        return mapper.deviceIdList();
     }
 }

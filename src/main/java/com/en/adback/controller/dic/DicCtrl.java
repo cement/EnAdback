@@ -1,6 +1,7 @@
 package com.en.adback.controller.dic;
 
 import com.en.adback.common.MessageModel;
+import com.en.adback.entity.devicemgr.Device;
 import com.en.adback.entity.dic.*;
 import com.en.adback.entity.sys.GroupRole;
 import com.en.adback.entity.sys.Role;
@@ -216,6 +217,13 @@ public class DicCtrl {
         return m;
     }
 
+    @GetMapping(value = "/deviceIdList")
+    public MessageModel deviceIdList(){
+        MessageModel m = new MessageModel();
+        List<Device> list = svr.deviceIdList();
+        m.setData(list);
+        return m;
+    }
 
 
 

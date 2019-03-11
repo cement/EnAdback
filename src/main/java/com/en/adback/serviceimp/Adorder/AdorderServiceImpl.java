@@ -334,5 +334,15 @@ public class AdorderServiceImpl implements IAdorderService {
         return adorderMapper.getOrderList(map);
     }
 
+    @Override
+    public int getOrderListTotal(Map<String, Object> map) {
+        List<Map<String,Object>> list=adorderMapper.getOrderListTotal(map);
+        int total=(int)Math.ceil(
+                Double.parseDouble(list.get(0).get("TOTAL").toString())
+                        /Double.parseDouble(map.get("pageSize").toString())
+        );
+        return total;
+    }
+
 
 }

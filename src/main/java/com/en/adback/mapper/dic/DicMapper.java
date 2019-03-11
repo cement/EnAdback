@@ -1,5 +1,6 @@
 package com.en.adback.mapper.dic;
 
+import com.en.adback.entity.devicemgr.Device;
 import com.en.adback.entity.dic.*;
 import com.en.adback.entity.sys.GroupRole;
 import com.en.adback.entity.sys.Role;
@@ -74,4 +75,10 @@ public interface DicMapper {
             "  select roleId,roleName from ad.t_role where groupRoleId = '${groupRoleId}'" +
             "</script>")
     List<Role> getRoleList(Map<String,Object> re);
+
+    // 查询原有已发布策略设备编号
+    @Select("<script>" +
+            " select deviceId from ad.t_haveSendPolicy_device  where count > 0" +
+            "</script>")
+    List<Device> deviceIdList();
 }

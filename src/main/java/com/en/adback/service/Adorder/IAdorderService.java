@@ -54,4 +54,6 @@ public interface IAdorderService {
     public List<OrderBill> getOrder(Map<String, Object> params);
 
     List<OrderBill> getOrderList(Map<String, Object> map);
+
+    int getOrderListTotal(Map<String, Object> map);
 }

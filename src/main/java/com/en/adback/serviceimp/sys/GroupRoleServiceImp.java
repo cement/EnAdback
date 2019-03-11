@@ -42,4 +42,9 @@ private GroupRoleMapper mapper;
     public int deleteGroupRole(Map<String, String> re) {
         return mapper.deleteGroupRole(re);
     }
+
+    @Override
+    public List<GroupRole> checkAppGroupRole() {
+        return mapper.checkAppGroupRole();
+    }
 }

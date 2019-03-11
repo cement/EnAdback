@@ -45,4 +45,11 @@ public interface GroupRoleMapper {
             "delete from ad.t_grouprole where groupRoleId='${groupRoleId}'" +
             "</script>")
     int deleteGroupRole(Map<String,String> re);
+
+
+    //检查具有公众号权限的分组是否已存在
+    @Select("<script>" +
+            " select * from ad.t_grouprole where appFunction = true" +
+            "</script>")
+    List<GroupRole> checkAppGroupRole();
 }

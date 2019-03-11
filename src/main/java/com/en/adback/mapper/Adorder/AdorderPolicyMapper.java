@@ -101,7 +101,7 @@ public interface AdorderPolicyMapper {
             "  <if test='invalidEndTime!=\"\" and invalidEndTime!=null '> " +
             "    <![CDATA[ and  t.effectTime <= to_date('${invalidEndTime} 08','yyyy-MM-dd hh') ]]>   " +
             "  </if>" +
-            "  limit ${pageSize} offset ${pageBegin}" +
+            "  order by t.orderStateId asc,t.makeTime desc limit ${pageSize} offset ${pageBegin}" +
             " </script>")
 
 
@@ -433,10 +433,60 @@ public interface AdorderPolicyMapper {
                     "<if test='stateId!=null and stateId!=\"\" and stateId!=0 '>" +
                     " and t.orderStateId='${stateId}' " +
                     "</if>" +
-                    " limit ${pageSize} offset ${pageBegin}" +
+                    " order by t.orderStateId asc, t.makeTime desc limit ${pageSize} offset ${pageBegin}" +
                     " </script>")
     public List<OrderBill> getOrderList(Map<String, Object> map);
 
+    @Select(
+            " <script>" +
+                    "   select count(*) as total  from ( " +
+                    "   select a.orderId as orderId,a.adCorpId as adCorpId,a.tradeId as tradeId,a.blankId as blankId,a.maker as maker,a.makeTime as makeTime,a.advertPolicysId as advertPolicysId,a.screenPolicyId as screenPolicyId,a.screenId as screenId, " +
+                    "   a.playDates as playDates,a.playTimeBegin as playTimeBegin,a.playTimeEnd as playTimeEnd,a.devices as devices,a.playAlone  as playAlone,a.putInKind as putInKind,a.systems as systems,a.effect as effect,a.effecter as effecter,a.effectTime  as effectTime, " +
+                    "   a.payMoney as payMoney,a.orderMemo as orderMemo,a.orderFirmTime as orderFirmTime,a.affirmer as affirmer, b.blankName as blankName, c.adcorpName as adcorpName, d.tradeName as tradeName , sub.adtotal advertCounts , '1' orderStateId " +
+                    "   from ad.T_ADVERT_ORDER_POLICYS as a inner join ad.T_BLANK as b on a.blankId = b.blankId inner join ad.T_ADVERTCORP as c on a.adcorpId=c.adcorpId inner join ad.T_TRADE as d on a.tradeId = d.tradeId " +
+                    "    left join " +
+                    "    ( " +
+                    "    select orderid, case when count(*) is null then 0 else count(*) end adtotal   from ad.T_ADVERT_sub_ORDER_POLICYS where advertid like 'or%' or  advertid like 'ad%'  group by orderid   " +
+                    "   )sub on a.orderid=sub.orderid " +
 
+                    " where a.effect=1 and a.orderid in (select orderid from ad.T_ADVERT_sub_ORDER_POLICYS  where  advertid like 'or%') " +
+
+                    "  union all " +
+                    "  select a.orderId as orderId,a.adCorpId as adCorpId,a.tradeId as tradeId,a.blankId as blankId,a.maker as maker,a.makeTime as makeTime,a.advertPolicysId as advertPolicysId,a.screenPolicyId as screenPolicyId,a.screenId as screenId, " +
+                    "  a.playDates as playDates,a.playTimeBegin as playTimeBegin,a.playTimeEnd as playTimeEnd,a.devices as devices,a.playAlone  as playAlone,a.putInKind as putInKind,a.systems as systems,a.effect as effect,a.effecter as effecter,a.effectTime  as effectTime, " +
+                    "  a.payMoney as payMoney,a.orderMemo as orderMemo,a.orderFirmTime as orderFirmTime, a.affirmer as affirmer, b.blankName as blankName, c.adcorpName as adcorpName, d.tradeName as tradeName , sub.adtotal advertCounts,'2' orderStateId " +
+                    "  from ad.T_ADVERT_ORDER_POLICYS as a inner join ad.T_BLANK as b on a.blankId = b.blankId inner join ad.T_ADVERTCORP as c on a.adcorpId=c.adcorpId inner join ad.T_TRADE as d on a.tradeId = d.tradeId " +
+                    " left join " +
+                    "  ( " +
+                    "          select orderid, case when count(*) is null then 0 else count(*) end adtotal   from ad.T_ADVERT_sub_ORDER_POLICYS where advertid like 'or%' or  advertid like 'ad%'  group by orderid   " +
+                    "  )sub on a.orderid=sub.orderid " +
+                    "  where a.effect=1 and a.orderid in (select orderid from ad.T_ADVERT_sub_ORDER_POLICYS  where  advertid like 'ad%') and  substr(a.playDates,0,10)  <![CDATA[ > ]]> to_char(CONVERT_TZ(CURRENT_DATE(), 'UTC', 'Asia/Shanghai'),'yyyy-MM-dd') " +
+
+                    "  union all " +
+                    "  select a.orderId as orderId,a.adCorpId as adCorpId,a.tradeId as tradeId,a.blankId as blankId,a.maker as maker,a.makeTime as makeTime,a.advertPolicysId as advertPolicysId,a.screenPolicyId as screenPolicyId,a.screenId as screenId, " +
+                    "  a.playDates as playDates,a.playTimeBegin as playTimeBegin,a.playTimeEnd as playTimeEnd,a.devices as devices,a.playAlone  as playAlone,a.putInKind as putInKind,a.systems as systems,a.effect as effect,a.effecter as effecter,a.effectTime  as effectTime, " +
+                    "  a.payMoney as payMoney,a.orderMemo as orderMemo,a.orderFirmTime as orderFirmTime,  a.affirmer as affirmer,b.blankName as blankName, c.adcorpName as adcorpName, d.tradeName as tradeName , sub.adtotal advertCounts,'3' orderStateId " +
+                    "  from ad.T_ADVERT_ORDER_POLICYS as a inner join ad.T_BLANK as b on a.blankId = b.blankId inner join ad.T_ADVERTCORP as c on a.adcorpId=c.adcorpId inner join ad.T_TRADE as d on a.tradeId = d.tradeId " +
+                    " left join " +
+                    "  ( " +
+                    "        select orderid, case when count(*) is null then 0 else count(*) end adtotal   from ad.T_ADVERT_sub_ORDER_POLICYS where advertid like 'or%' or  advertid like 'ad%'  group by orderid   " +
+                    "  )sub on a.orderid=sub.orderid " +
+                    " where a.effect=1 and a.orderid in (select orderid from ad.T_ADVERT_sub_ORDER_POLICYS  where  advertid like 'ad%') and  substr(a.playDates,0,10)  <![CDATA[ <= ]]> to_char(CONVERT_TZ(CURRENT_DATE(), 'UTC', 'Asia/Shanghai'),'yyyy-MM-dd') " +
+                    "  union all " +
+                    "  select a.orderId as orderId,a.adCorpId as adCorpId,a.tradeId as tradeId,a.blankId as blankId,a.maker as maker,a.makeTime as makeTime,a.advertPolicysId as advertPolicysId,a.screenPolicyId as screenPolicyId,a.screenId as screenId, " +
+                    "  a.playDates as playDates,a.playTimeBegin as playTimeBegin,a.playTimeEnd as playTimeEnd,a.devices as devices,a.playAlone  as playAlone,a.putInKind as putInKind,a.systems as systems,a.effect as effect,a.effecter as effecter,a.effectTime  as effectTime, " +
+                    "  a.payMoney as payMoney,a.orderMemo as orderMemo,a.orderFirmTime as orderFirmTime,   a.affirmer as affirmer,b.blankName as blankName, c.adcorpName as adcorpName, d.tradeName as tradeName , sub.adtotal advertCounts,'4' orderStateId " +
+                    "    from ad.T_ADVERT_ORDER_POLICYS as a inner join ad.T_BLANK as b on a.blankId = b.blankId inner join ad.T_ADVERTCORP as c on a.adcorpId=c.adcorpId inner join ad.T_TRADE as d on a.tradeId = d.tradeId " +
+                    "  left join " +
+                    " ( " +
+                    "        select orderid, case when count(*) is null then 0 else count(*) end adtotal   from ad.T_ADVERT_sub_ORDER_POLICYS where advertid like 'or%' or  advertid like 'ad%'  group by orderid   " +
+                    " )sub on a.orderid=sub.orderid " +
+                    " where a.effect=0 " +
+                    "  ) t  where t.maker='${userId}' " +
+                    "<if test='stateId!=null and stateId!=\"\" and stateId!=0 '>" +
+                    " and t.orderStateId='${stateId}' " +
+                    "</if>" +
+                    " </script>")
+    List<Map<String, Object>> getOrderListTotal(Map<String, Object> map);
 
 }

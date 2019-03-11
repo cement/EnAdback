@@ -20,4 +20,6 @@ public interface IGroupRoleService {
 
     int deleteGroupRole(Map<String,String> re);
 
+    List<GroupRole> checkAppGroupRole();
+
 }

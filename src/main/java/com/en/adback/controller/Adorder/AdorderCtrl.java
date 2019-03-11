@@ -437,6 +437,28 @@ public class AdorderCtrl {
         return model;
     }
 
+    /**
+     *     微信公众号获取订单列表总页数
+     * @param stateId
+     * @param userId
+     * @return
+     */
+    @GetMapping(value = "/getOrderListTotal")
+    public MessageModel getOrderListTotal(int stateId, String userId, int pageIndex, int pageSize){
+        MessageModel model=new MessageModel();
+        Map<String,Object> map=new HashMap<String, Object>();
+        map.put("stateId",stateId);
+        map.put("userId",userId);
+        map.put("pageSize",pageSize);
+        int total=adorderService.getOrderListTotal(map);
+        map.clear();
+        map.put("total",total);
+        model.setData(map);
+        model.setResultCode("1");
+        model.setResultMsg("success");
+        return model;
+    }
+
 
     /*订单表优化测试方法*/
     @GetMapping(value="/getAdorderTest")

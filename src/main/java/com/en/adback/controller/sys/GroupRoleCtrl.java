@@ -157,4 +157,14 @@ public class GroupRoleCtrl {
         ulogs.insertGetLogs(loginUserId,loginGroupRoleId,loginRoleId,ip,"删除角色分组");
         return m;
     }
+
+    @GetMapping(value = "/checkAppGroupRole")
+    public MessageModel checkAppGroupRole(String loginUserId,String loginGroupRoleId,String loginRoleId,HttpServletRequest request){
+        MessageModel m = new MessageModel();
+        List<GroupRole> list = svr.checkAppGroupRole();
+        m.setData(list.size()>0?1:0);
+        String ip= Common.getIpAddr(request);
+        ulogs.insertGetLogs(loginUserId,loginGroupRoleId,loginRoleId,ip,"检测公众号权限分组是否已存在");
+        return m;
+    }
 }
