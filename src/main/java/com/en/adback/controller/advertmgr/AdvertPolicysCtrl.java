@@ -12,16 +12,13 @@ import com.en.adback.redisrepo.entity.DeviceCutAdvert;
 import com.en.adback.service.advertmgr.IAdvertPolicyService;
 import com.en.adback.service.advertmgr.IAdvertService;
 import com.en.adback.service.deviceManager.IPolicySendDeviceService;
-import com.en.adback.serviceimp.DeviceCalServiceImpl;
 import io.swagger.annotations.Api;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.core.task.TaskExecutor;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;

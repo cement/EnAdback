@@ -3,11 +3,14 @@ package com.en.adback.websocket;
 
 import io.netty.handler.codec.http.websocketx.PingWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.PongWebSocketFrame;
+import lombok.extern.slf4j.Slf4j;
 import org.yeauty.pojo.Session;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
+@Slf4j
 public class WsSessionManager {
 
     private static final ConcurrentHashMap<String, Session> sessionMap = new ConcurrentHashMap();
@@ -26,7 +29,14 @@ public class WsSessionManager {
 
 
     public static void sendActionByDeviceId(String deviceId,String action){
-        sessionMap.get(deviceId).sendText(action);
+         Session session = sessionMap.get(deviceId);
+        if (!Objects.isNull(session)) {
+
+            session.sendText(action);
+            log.info("=== 發送命令：{}",action);
+        }else{
+            log.info("客户端[{}]未在线！",deviceId);
+        }
 
     }
 

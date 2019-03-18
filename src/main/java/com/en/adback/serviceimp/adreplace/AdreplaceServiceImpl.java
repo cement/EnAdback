@@ -3,7 +3,9 @@ package com.en.adback.serviceimp.adreplace;
 import com.alibaba.fastjson.JSON;
 import com.en.adback.entity.adreplace.BusinessEnum;
 import com.en.adback.entity.adreplace.ResponseModel;
+import com.en.adback.mapper.AdReplace.AdReplaceMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.ibatis.annotations.Param;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.FileSystemResource;
@@ -19,6 +21,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author ysh
@@ -30,15 +34,18 @@ import java.nio.file.Paths;
 public class AdreplaceServiceImpl {
 
     @Value("${advertfiles}")
-    private String advertDir;
+    private String advertFilesPath;
 
 
     @Autowired
     private RestTemplate restTemplate;
 
+    @Autowired
+    private AdReplaceMapper adReplaceMapper;
+
     /*提供从本服务器下载功能*/
     public void downLoad(String fileName, HttpServletResponse response) throws IOException {
-        Path path = Paths.get(advertDir, fileName);
+        Path path = Paths.get(advertFilesPath, fileName);
         response.setContentType("application/octet-stream");
         response.setHeader("Content-Disposition", "attachment; filename=" + new String(fileName.getBytes("utf-8"), "iso-8859-1"));
         long readed = Files.copy(path, response.getOutputStream());
@@ -48,8 +55,8 @@ public class AdreplaceServiceImpl {
     /*从本服务器上传到市州服务器*/
     public ResponseModel upLoad(String targetUrl, String fileName,Boolean isAsync) {
 
-        log.info("开始上传：{}",fileName);
-        Path filePath = Paths.get(advertDir, fileName);
+        log.info("开始上传->> url：{},fileName:{}",targetUrl,fileName);
+        Path filePath = Paths.get(advertFilesPath, fileName);
         if (StringUtils.isEmpty(fileName) || Files.notExists(filePath)){
             ResponseModel model = ResponseModel.warp(BusinessEnum.UNEXIST).setData(fileName);
             return model;
@@ -78,7 +85,7 @@ public class AdreplaceServiceImpl {
     /*从本服务器下发文件名，市州服务器自主从本服务器下载*/
     public ResponseModel dispatch(String targetUrl,String fileName,Boolean isAsync){
         log.info("开始下发：{}",fileName);
-        Path filePath = Paths.get(advertDir, fileName);
+        Path filePath = Paths.get(advertFilesPath, fileName);
         if (StringUtils.isEmpty(fileName) || Files.notExists(filePath)){
             ResponseModel model = ResponseModel.warp(BusinessEnum.UNEXIST).setData(fileName);
             return model;
@@ -104,4 +111,58 @@ public class AdreplaceServiceImpl {
 
         log.info("callback 收到的信息：{}",callbackJson);
     }
+
+    /*------------------------------------------------------------------------------------------------------------------------------------------*/
+
+    //读取原策略, 保存到备份表.
+    public int advertPolicysBackup(String advertPolicysId){
+       return adReplaceMapper.advertPolicysBackup(advertPolicysId);
+    }
+
+    //查詢廣告策略表(根據advertPolicysId)
+    public Map<String,String> getAdvertPolicysById(String advertPolicysId){
+        return  adReplaceMapper.getAdvertPolicysById(advertPolicysId);
+    }
+
+    public int upsertAdvertPolicys(Map<String,Object> params){
+        return adReplaceMapper.upsertAdvertPolicys(params);
+    }
+
+    public int upsertSubAdvertPolicys(Map<String,Object> params){
+        return adReplaceMapper.insertSubAdvertPolicys(params);
+    }
+
+    public int insertAdvertHisState(Map<String, Object> paramsMap){
+        return adReplaceMapper.insertAdvertHisState(paramsMap);
+    }
+
+    //更新广告状态历史记录
+    public int updateAdvertHisState(Map<String, Object> paramsMap){
+        return adReplaceMapper.updateAdvertHisState(paramsMap);
+    }
+
+    public List<Map<String,Object>> getSubAdvertPolicysByAdvertPolicysId(String advertPolicysId,String screenCutIds ){
+        return adReplaceMapper.getSubAdvertPolicysByAdvertPolicysId(advertPolicysId,screenCutIds);
+    }
+    public Map<String,Object> getSubAdvertPolicysByAdvertPolicysIdAndScreenCutId(String advertPolicysId, String screenCutId ){
+        return adReplaceMapper.getSubAdvertPolicysByAdvertPolicysIdAndScreenCutId(advertPolicysId,screenCutId);
+    }
+
+    public String getFileNameByAdvertId(String advertId){
+        return adReplaceMapper.getFileNameByAdvertId(advertId);
+    }
+
+    public List<Map<String,String>> getFilehostAddress(String devices){
+        return adReplaceMapper.getFilehostAddress(devices);
+    }
+
+    public int updateDayPolicysRole(Map<String,Object> paramMap){
+        return adReplaceMapper.updateDayPolicysRole(paramMap);
+    }
+
+
+    public int updateAdvertState(Map<String,Object> paramMap){
+        return adReplaceMapper.updateAdvertState(paramMap);
+    }
+
 }

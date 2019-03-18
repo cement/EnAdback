@@ -213,30 +213,19 @@ public class MakeExcelCtrl {
         total.setCellValue("全部天数（"+mapDays.get("totalDates").toString()+")");
         total.setCellStyle(style);
         //获取播放日期数据
-        if(1<=playDaysArray.length){//当日期都在同一个月  前面已经转化为map了
-            HSSFRow dayrow=sheet.getRow(2);
-            if (dayrow==null){
-                dayrow=sheet.createRow(2);
-            }
-            Cell monthcell=dayrow.createCell(2);
-            String year = mapDays.get("year").toString();
-            String month = mapDays.get("month").toString();
-            monthcell.setCellValue(mapDays.get("year").toString()+"年"+mapDays.get("month").toString()+"月"+"("+mapDays.get("totalDates").toString()+")");
-            monthcell.setCellStyle(style);
-            Cell daycell=dayrow.createCell(3);
-            daycell.setCellValue(mapDays.get("days").toString());
-            daycell.setCellStyle(style);
-        }else{//当日期不在同一个月
+        if(playDaysArray.length>0){
             for (int i = 0; i < playDaysArray.length; i++) {
                 Map<String,Object> day = JSON.parseObject(playDaysArray[i].toString(),Map.class);
                 HSSFRow dayrow=sheet.getRow(i+2);
                 if (dayrow==null){
                     dayrow=sheet.createRow(i+2);
                 }
-                Cell monthcell=dayrow.getCell(2);
+
+                Cell monthcell=dayrow.createCell(2);
                 monthcell.setCellValue(day.get("year").toString()+"年"+day.get("month").toString()+"月"+"("+day.get("days").toString().split(",").length+")");
+
                 monthcell.setCellStyle(style);
-                Cell daycell=dayrow.getCell(3);
+                Cell daycell=dayrow.createCell(3);
                 daycell.setCellValue(day.get("days").toString());
                 daycell.setCellStyle(style);
             }
@@ -330,7 +319,7 @@ public class MakeExcelCtrl {
         cellFont.setFontName("宋体"); // 设置字体类型
         cellFont.setFontHeightInPoints((short) 12); // 设置字体大小
         cellFont.setColor(HSSFColor.BLACK.index);  //设置字体颜色
-        style.setFont(cellFont); // 为标题样式设置字体样式
+        cellStyle.setFont(cellFont); // 为标题样式设置字体样式
         //获取关联广告
         for (int i = 0; i < linkAdvertList.size(); i++) {
             HSSFRow linkadvertrow=sheet.createRow(5+playDaysArray.length+i);
@@ -374,33 +363,33 @@ public class MakeExcelCtrl {
             HSSFRow devicerow=sheet.createRow(7+playDaysArray.length+linkAdvertList.size()+i);
             Cell nocell = devicerow.createCell(0);
             nocell.setCellValue(i+1);//序号
-            nocell.setCellStyle(style);
+            nocell.setCellStyle(cellStyle);
             Cell deviceIdcell = devicerow.createCell(1);
-            deviceIdcell.setCellStyle(style);
+            deviceIdcell.setCellStyle(cellStyle);
             deviceIdcell.setCellValue(deviceList.get(i).getDeviceId());//设备编号
             Cell enterpriseIdcell = devicerow.createCell(2);
             enterpriseIdcell.setCellValue(deviceList.get(i).getEnterpriseId());//场所编号
-            enterpriseIdcell.setCellStyle(style);
+            enterpriseIdcell.setCellStyle(cellStyle);
             Cell enterpriseNamecell = devicerow.createCell(3);
             enterpriseNamecell.setCellValue(deviceList.get(i).getEnterpriseName());//场所名称
-            enterpriseNamecell.setCellStyle(style);
+            enterpriseNamecell.setCellStyle(cellStyle);
             Cell addresscell = devicerow.createCell(4);
             addresscell.setCellValue(deviceList.get(i).getAddress());//场所地址
-            addresscell.setCellStyle(style);
+            addresscell.setCellStyle(cellStyle);
             if("advertCount".equals(inputType)){
                 Cell stateIdcell = devicerow.createCell(5);
                 stateIdcell.setCellValue(deviceList.get(i).getStateId());//广告状态
-                stateIdcell.setCellStyle(style);
+                stateIdcell.setCellStyle(cellStyle);
                 Cell playConts = devicerow.createCell(6);
                 playConts.setCellValue(deviceList.get(i).getPlayCounts());//播放频次
-                playConts.setCellStyle(style);
+                playConts.setCellStyle(cellStyle);
             }
         }
 
         //合并单元格
-        if (playDaysArray.length>1){
-            sheet.addMergedRegion(new CellRangeAddress(2, playDaysArray.length+1, 1, 1));
-        }
+//        if (playDaysArray.length>1){
+//            sheet.addMergedRegion(new CellRangeAddress(2, playDaysArray.length+1, 1, 1));
+//        }
 
         os=new FileOutputStream(file);
         wb.write(os);

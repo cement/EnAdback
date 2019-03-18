@@ -2,7 +2,6 @@ package com.en.adback.controller.deviceManager;
 
 import com.en.adback.common.MessageModel;
 import com.en.adback.service.deviceManager.IPolicySendDeviceService;
-import com.en.adback.serviceimp.DeviceCalServiceImpl;
 import io.swagger.annotations.Api;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,8 +10,6 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.concurrent.Future;
 
 @Slf4j
 @Api(value="策略分发到设备统计",tags={"策略分发到设备统计API接口"})

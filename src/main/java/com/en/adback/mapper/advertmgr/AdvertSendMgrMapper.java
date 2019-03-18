@@ -154,9 +154,11 @@ public interface AdvertSendMgrMapper {
     public List<AdvertDayPolicyRole> getDevicePolicyRoles(Map<String, Object> map);
 
     //根据广告id查询 广告策略、设备、关联屏幕详情
-    @Select("select ad.advertid advertId,ad.advertName advertName,fileName,downLoadFileName,am.duration duration,sap.advertpolicysid advertPolicyId,ap.playAlone playAlone," +
-            "ap.putInKind putInKind,ap.playDates playDays,ap.devices devices,pc.policyName policyName,sc.screenCutName screen,sc.position screenPosition," +
-            "case when ad.advertid='${advertId}' then 1 else 2 end as screenType from ad.t_advert ad\n" +
+    @Select("select ad.advertid advertId,ad.advertName advertName,fileName,downLoadFileName,am.duration duration,ad.adCorpId as adCorpId," +
+            "sap.advertpolicysid advertPolicyId,ap.playAlone playAlone,ap.putInKind putInKind,ap.playDates playDays,ap.devices devices," +
+            "pc.screenPolicyId as screenPolicyId,pc.policyName policyName,ap.screenId as screenId,sap.screenCutId as screenCutId," +
+            "sc.screenCutName screen,sc.position screenPosition,case when ad.advertid='${advertId}' then 1 else 2 end as screenType \n" +
+            "from ad.t_advert ad\n" +
             "inner join ad.t_advert_media am on am.advertId=ad.advertId\n" +
             "inner join  ad.t_sub_advert_policys sap on sap.advertid=ad.advertid \n" +
             "inner join \n" +

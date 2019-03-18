@@ -42,6 +42,9 @@ public interface AdvertMapper {
             "<if test='tradeId != \"0\"  '>" +
             " and tr.tradeId  ='${tradeId}' " +
             "</if>" +
+            "<if test='adCorpId!=\"0\" and adCorpId!=\"\" and adCorpId!=null '>" +
+            " and ad.adCorpId='${adCorpId}' " +
+            "</if>" +
             "<if test='adCorpName!=\"\" and adCorpName!=null '>" +
             " <![CDATA[ and c.adCorpName like '%${adCorpName}%' ]]>" +
             "</if>" +

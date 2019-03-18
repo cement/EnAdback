@@ -11,6 +11,7 @@ public class AdvertPutIn {
     private String fileName; // 广告名称
     private String downLoadFileName; //下载文件名
     private String adCorpName;
+    private String adCorpId;
     private String tradeName;
     private String blankName;
     private double duration ; // 时长
@@ -33,6 +34,8 @@ public class AdvertPutIn {
     private int screenType;  //区分主屏幕还是关联屏
     private String state;//当前状态 导出excel用
     private String  playAloneString; //播放形式  导出excel用
+    private String screenId; // 屏幕模式id
+    private String screenCutId; // 切屏模式id
     public AdvertPutIn() {
     }
 }

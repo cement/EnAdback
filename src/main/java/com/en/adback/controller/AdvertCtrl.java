@@ -54,8 +54,8 @@ public class AdvertCtrl {
             @ApiResponse(code = 2, message = "服务器内部异常"),
             @ApiResponse(code =3, message = "权限不足") })
     @GetMapping(value = "/advertList")
-    public MessageModel advertList(String state , String advertName,String tradeId,String adCorpName,String blankId ,
-                                   String uploadTimeBegin,String uploadTimeEnd,String extraAdvertIds,int pageSize,int pageNo,String loginUserId,
+    public MessageModel advertList(String state , String advertName,String tradeId,String adCorpName,String blankId ,String uploadTimeBegin,
+                                   String uploadTimeEnd,String extraAdvertIds,String adCorpId,int pageSize,int pageNo,String loginUserId,
                                    String loginGroupRoleId,String loginRoleId,HttpServletRequest request)
     {
         MessageModel model=new MessageModel();
@@ -65,6 +65,7 @@ public class AdvertCtrl {
         map.put("tradeId",tradeId);
         map.put("adCorpName",adCorpName);
         map.put("blankId",blankId);
+        map.put("adCorpId",adCorpId);
         map.put("extraAdvertIds", (extraAdvertIds==null || extraAdvertIds.equals("")) ? "" : "'" + extraAdvertIds.replace(",","','")+"'" );
         map.put("uploadTimeBegin",uploadTimeBegin);
         //把截止日期加长一天

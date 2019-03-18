@@ -127,15 +127,15 @@ public interface UserMapper {
 
     //插入用户
     @Insert("<script>" +
-            "upsert into ad.t_user(userId,userName,tel,roleId,isManager,password, groupRoleId,ifGroupManager,appUser) " +
-            " values('${userId}','${userName}','${tel}','${roleId}',${isManager},'${passWord}', '${groupRoleId}',${ifGroupManager},${appUser})" +
+            "upsert into ad.t_user(userId,userName,tel,roleId,isManager,password, groupRoleId,ifGroupManager) " +
+            " values('${userId}','${userName}','${tel}','${roleId}',${isManager},'${passWord}', '${groupRoleId}',${ifGroupManager})" +
             "</script>")
      int insertUser(User user);
 
     //修改用户
     @Insert("<script>" +
-            "upsert into ad.t_user(userId,userName,tel,roleId,isManager, groupRoleId,ifGroupManager,appUser) " +
-            " values('${userId}','${userName}','${tel}','${roleId}',${isManager},'${groupRoleId}',${ifGroupManager},${appUser})" +
+            "upsert into ad.t_user(userId,userName,tel,roleId,isManager, groupRoleId,ifGroupManager) " +
+            " values('${userId}','${userName}','${tel}','${roleId}',${isManager},'${groupRoleId}',${ifGroupManager})" +
             "</script>")
     int updateUser(User user);
 

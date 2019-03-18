@@ -1,32 +1,28 @@
 package com.en.adback.controller.Adreplace;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.serializer.SerializerFeature;
 import com.en.adback.common.MessageModel;
 import com.en.adback.entity.adreplace.AdReplaceInParams;
 import com.en.adback.entity.adreplace.BusinessEnum;
 import com.en.adback.entity.adreplace.ResponseModel;
 import com.en.adback.serviceimp.adreplace.AdreplaceServiceImpl;
 import com.en.adback.websocket.WsSessionManager;
-import com.sun.deploy.util.URLUtil;
-import io.swagger.annotations.*;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiResponse;
+import io.swagger.annotations.ApiResponses;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang.time.DateFormatUtils;
-import org.apache.http.client.utils.DateUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
-import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.util.UriUtils;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.net.URL;
-import java.text.DateFormat;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
@@ -143,7 +139,7 @@ public class AdreplaceCtrl {
     public ResponseEntity<MessageModel> advertReplace(@RequestBody AdReplaceInParams adReplaceInParams){
 
 
-        System.out.println(JSON.toJSONString(adReplaceInParams,true));
+        System.out.println(JSON.toJSONString(adReplaceInParams,SerializerFeature.WriteMapNullValue,SerializerFeature.PrettyFormat));
 
         //原策略Id
         String sourceAdvertPolicyId = adReplaceInParams.getSourceAdvertPolicyId();
@@ -168,6 +164,8 @@ public class AdreplaceCtrl {
                 throw new RuntimeException("AdvertPolicyId+ScreenCutId不唯一！");
             }
         });
+
+        System.out.println(JSON.toJSONString(adReplaceInParams, SerializerFeature.WriteMapNullValue,SerializerFeature.PrettyFormat));
 
         /*1. 备份原策略.*/
         adreplaceService.advertPolicysBackup(sourceAdvertPolicyId);
@@ -272,7 +270,7 @@ public class AdreplaceCtrl {
                 // TODO  修改每日播放策略文件表 ad.t_advert_day_policy_role,更新需替换设备对应的所有广告
                 paramMap.put("newFileName", info.getAdvertName());
                 paramMap.put("oldFileName",info.getSrcAdvertName());
-                String replaceDevicesStr = Arrays.stream(replaceDevices.split(",")).sorted().collect(Collectors.joining("','"));
+                String replaceDevicesStr = Arrays.stream(replaceDevices.split(",")).collect(Collectors.joining("','"));
                 paramMap.put("replaceDevices",replaceDevicesStr);
                 adreplaceService.updateDayPolicysRole(paramMap);
 
@@ -295,11 +293,10 @@ public class AdreplaceCtrl {
 
             // TODO 异步执行
             threadExecutor.execute(()->{
-                List<Map<String, String>> filehostAddressList = adreplaceService.getFilehostAddress();
+                String replaceDevicesStr = Arrays.stream(replaceDevices.split(",")).collect(Collectors.joining("','"));
+                List<Map<String, String>> filehostAddressList = adreplaceService.getFilehostAddress(replaceDevicesStr);
                 //  TODO 上传广告文件到市州文件服务器
-                filehostAddressList.stream().forEach(map->{
-                    boolean isMatch = Pattern.matches("(http|https)://([\\w.:]+|[\\w.:]+/)", map.get("ip"));
-                    if (isMatch){
+                filehostAddressList.stream().filter(map->Pattern.matches("(http|https)://([\\w.:]+|[\\w.:]+/)", map.get("ip"))).forEach(map->{
                         String url = map.get("ip")+fileHostUploadPath;
                         log.info("url："+url);
                         /*测试使用*/
@@ -313,16 +310,9 @@ public class AdreplaceCtrl {
                                     log.error("=== 上传错误 ===,url:{}",url,e);
                                 }
                             });
-                    }else{
-                        log.info("上传地址错误！{}",map.get("ip")+fileHostUploadPath);
-                    }
+
                 });
 
-                try {
-                    Thread.sleep(5000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
 
                 // TODO 通知设备
                 HashMap<String, Object> cmdReplaceMap = new HashMap<>();
